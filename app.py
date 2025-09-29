@@ -7,12 +7,10 @@ st.set_page_config(page_title="Toggle con tecla", layout="centered")
 if "toggle" not in st.session_state:
     st.session_state.toggle = False
 
-# Capturar tecla desde el componente React
-key_pressed = my_key_listener(key="listener")
-
-if key_pressed == "Enter":  # puedes cambiar la tecla
+key = my_key_listener(key="listener")
+if key == "Enter":
     st.session_state.toggle = not st.session_state.toggle
-    st.rerun()
+    st.rerun()  # uso recomendado vs st.rerun()
 
 st.markdown("### 🟢" if st.session_state.toggle else "### 🔴")
-st.write("Última tecla detectada:", key_pressed)
+st.write("Última tecla detectada:", key)
