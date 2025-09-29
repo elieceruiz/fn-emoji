@@ -7,25 +7,29 @@ st.set_page_config(page_title="Toggle Emoji", layout="centered")
 if "toggle" not in st.session_state:
     st.session_state.toggle = False
 
-# Inyectar JS para detectar tecla Suprimir en español y estándar
+# Inyectar JS para detectar tecla Suprimir/Delete
 st.components.v1.html("""
 <script>
 document.addEventListener("keydown", function(event) {
-    // Detecta Delete (inglés) o Supr (español)
     if (event.code === "Delete" || event.key === "Delete") {
         const url = new URL(window.location.href);
-        url.searchParams.set("toggle", "1");
+        // usamos timestamp para evitar cache
+        url.searchParams.set("toggle_event", Date.now());
         window.location.href = url.toString();
     }
 });
 </script>
 """, height=0)
 
-# Detectar si se presionó Suprimir mediante query param
-if "toggle" in st.query_params:
+# Detectar param de evento
+if "toggle_event" in st.query_params:
     st.session_state.toggle = not st.session_state.toggle
-    st.query_params.clear()  # limpia params para no reinvertir al recargar
-    st.rerun()               # rerun estable
+
+    # limpiar los params (ya soportado en 1.50+)
+    st.query_params.clear()
+
+    # relanzar ciclo
+    st.rerun()
 
 # Mostrar emoji según estado
 st.markdown("### 🟢" if st.session_state.toggle else "### 🔴")
