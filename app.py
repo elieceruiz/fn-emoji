@@ -1,4 +1,4 @@
-# app.py
+# app_toggle_supr.py
 import streamlit as st
 
 st.set_page_config(page_title="Toggle Emoji", layout="centered")
