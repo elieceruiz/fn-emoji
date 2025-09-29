@@ -21,10 +21,11 @@ st.markdown("### 🟢" if st.session_state.toggle else "### 🔴")
 st.components.v1.html("""
 <script>
 document.addEventListener("keydown", function(event) {
-    if (event.key === "Enter") {  // Cambia la tecla aquí
+    if (event.key === "Enter") {
         const url = new URL(window.location.href);
         url.searchParams.set("toggle", "1");
-        window.location.href = url.toString();
+        window.history.pushState({}, "", url);  // Actualiza sin redirigir
+        location.reload();  // Recarga para que Streamlit lo lea
     }
 });
 </script>
