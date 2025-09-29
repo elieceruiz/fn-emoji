@@ -1,14 +1,18 @@
 import streamlit as st
 
-st.set_page_config(page_title="Key Event", layout="centered")
+st.set_page_config(page_title="Toggle Emoji", layout="centered")
 
 if "toggle" not in st.session_state:
     st.session_state.toggle = False
 
-event = st.key_event("Press a key")
+# Campo para capturar la tecla
+key = st.text_input("Presiona ENTER aquí", "")
 
-if event.key == "Delete" or event.key == "Shift":
+# Cuando el usuario presiona Enter, se dispara
+if key != "":
     st.session_state.toggle = not st.session_state.toggle
+    st.session_state.key = ""  # limpiar
     st.rerun()
 
+# Mostrar estado
 st.markdown("### 🟢" if st.session_state.toggle else "### 🔴")
