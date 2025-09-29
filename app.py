@@ -1,35 +1,29 @@
-# app_toggle_supr.py
+# app_toggle_key.py
 import streamlit as st
 
 st.set_page_config(page_title="Toggle Emoji", layout="centered")
 
-# Inicializar toggle en session_state
 if "toggle" not in st.session_state:
     st.session_state.toggle = False
 
-# Inyectar JS para detectar tecla Suprimir/Delete
+def flip_toggle():
+    st.session_state.toggle = not st.session_state.toggle
+
+# Botón oculto
+btn = st.button("hidden_btn", on_click=flip_toggle)
+
+# JS que simula click al presionar Shift
 st.components.v1.html("""
 <script>
 document.addEventListener("keydown", function(event) {
-    if (event.code === "Delete" || event.key === "Delete") {
-        const url = new URL(window.location.href);
-        // usamos timestamp para evitar cache
-        url.searchParams.set("toggle_event", Date.now());
-        window.location.href = url.toString();
+    if (event.key === "Shift") {
+        const btn = window.parent.document.querySelector('button[kind="secondary"]'); 
+        if (btn && btn.innerText === "hidden_btn") {
+            btn.click();
+        }
     }
 });
 </script>
 """, height=0)
 
-# Detectar param de evento
-if "toggle_event" in st.query_params:
-    st.session_state.toggle = not st.session_state.toggle
-
-    # limpiar los params (ya soportado en 1.50+)
-    st.query_params.clear()
-
-    # relanzar ciclo
-    st.rerun()
-
-# Mostrar emoji según estado
 st.markdown("### 🟢" if st.session_state.toggle else "### 🔴")
