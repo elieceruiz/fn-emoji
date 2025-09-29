@@ -1,21 +1,19 @@
 import streamlit as st
 
-st.set_page_config(page_title="Demo Toggle con Botón")
+st.set_page_config(page_title="ENTER universal", layout="centered")
 
+# Estado inicial
 if "toggle" not in st.session_state:
     st.session_state.toggle = False
 
-entrada = st.text_input("Escribe algo y presiona ENTER o pulsa el botón:")
+# Input (no importa si escribes o no)
+entrada = st.text_input("Escribe algo y presiona ENTER:")
 
-# Acción con ENTER si escribiste algo
-if entrada:
+# Botón oculto que será disparado por JS
+if st.button("Acción", key="accion"):
     st.session_state.toggle = not st.session_state.toggle
 
-# Acción con botón aunque no escribas nada
-if st.button("🔄 Alternar"):
-    st.session_state.toggle = not st.session_state.toggle
-
-# Emoji
+# Mostrar estado con emoji
 if st.session_state.toggle:
     st.markdown("😃 **Activo**")
 else:
@@ -25,3 +23,16 @@ st.json({
     "valor_capturado": entrada,
     "toggle_actual": st.session_state.toggle
 })
+
+# --- Hack JS: captura Enter y pulsa el botón ---
+st.markdown("""
+    <script>
+    const input = window.parent.document.querySelector('input[type="text"]');
+    input.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') {
+            const boton = window.parent.document.querySelector('button[kind="secondary"]');
+            if (boton) boton.click();
+        }
+    });
+    </script>
+""", unsafe_allow_html=True)
