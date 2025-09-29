@@ -1,27 +1,49 @@
 import streamlit as st
+import time
 
 st.set_page_config(page_title="Toggle Emoji", layout="centered")
 
 if "toggle" not in st.session_state:
     st.session_state.toggle = False
+if "last_key" not in st.session_state:
+    st.session_state.last_key = {}
 
-# Botón invisible que cambia el toggle
-if st.button("toggle_button", key="hidden_toggle", help="Oculto"):
+# Botón visible de debug
+if st.button("Cambiar estado", key="visible_toggle"):
     st.session_state.toggle = not st.session_state.toggle
     st.rerun()
 
-# Inyectar JS para presionar el botón cuando se detecta una tecla
-st.components.v1.html("""
+# Inyectar JS con debug
+st.components.v1.html(f"""
 <script>
-document.addEventListener("keydown", function(event) {
-    if (event.key === "Shift" || event.key === "Delete") {
-        // Buscar el botón por su texto o atributo
-        const btn = window.parent.document.querySelector('button[kind="secondary"][title="Oculto"]');
-        if (btn) { btn.click(); }
-    }
-});
+document.addEventListener("keydown", function(event) {{
+    const debugData = {{
+        key: event.key,
+        code: event.code,
+        time: Date.now()
+    }};
+    console.log("DEBUG:", debugData);
+
+    // Mandar los datos a Streamlit usando query params
+    const url = new URL(window.location.href);
+    url.searchParams.set("key_pressed", JSON.stringify(debugData));
+    window.location.href = url.toString();
+}});
 </script>
 """, height=0)
 
-# Mostrar emoji según estado
+# Captura desde query params
+if "key_pressed" in st.query_params:
+    try:
+        import json
+        data = json.loads(st.query_params["key_pressed"])
+        st.session_state.last_key = data
+    except Exception as e:
+        st.session_state.last_key = {"error": str(e)}
+    st.query_params.clear()
+    st.rerun()
+
+# Mostrar estado + debug
 st.markdown("### 🟢" if st.session_state.toggle else "### 🔴")
+st.subheader("Última tecla detectada (debug)")
+st.json(st.session_state.last_key)
