@@ -1,26 +1,31 @@
 import streamlit as st
 
-st.set_page_config(page_title="Tecla activa botón", layout="centered")
+st.set_page_config(page_title="Toggle con tecla", layout="centered")
 
+# Estado inicial
 if "toggle" not in st.session_state:
     st.session_state.toggle = False
 
-# Botón que alterna el estado
-if st.button("Cambiar estado"):
-    st.session_state.toggle = not st.session_state.toggle
+# Leer query param (para comunicación con JS)
+query_params = st.query_params
 
-# Mostrar emoji
+if "toggle" in query_params:
+    st.session_state.toggle = not st.session_state.toggle
+    st.query_params.clear()
+    st.rerun()
+
+# Mostrar estado
 st.markdown("### 🟢" if st.session_state.toggle else "### 🔴")
 
-# --- JavaScript: detectar tecla y simular clic en el botón ---
-st.markdown("""
+# Inyectar JS que escucha la tecla y mete un param en la URL
+st.components.v1.html("""
 <script>
 document.addEventListener("keydown", function(event) {
-    // Cambia aquí la tecla que quieras (ej: "Enter", "Shift", "Delete")
-    if (event.key === "Enter") {
-        const boton = window.parent.document.querySelector('button');
-        if (boton) boton.click();
+    if (event.key === "Enter") {  // Cambia la tecla aquí
+        const url = new URL(window.location.href);
+        url.searchParams.set("toggle", "1");
+        window.location.href = url.toString();
     }
 });
 </script>
-""", unsafe_allow_html=True)
+""", height=0)
