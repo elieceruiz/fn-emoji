@@ -1,0 +1,22 @@
+name: Make postinstall executable
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  set-executable:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Give execute permission to postinstall
+        run: chmod +x postinstall
+      - name: Commit updated permissions
+        run: |
+          git config user.name github-actions
+          git config user.email github-actions@github.com
+          git add postinstall
+          git commit -m "Make postinstall executable" || echo "No changes to commit"
+          git push
