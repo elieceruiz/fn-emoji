@@ -1,29 +1,31 @@
-# app_toggle_key.py
+# key_test.py
 import streamlit as st
 
-st.set_page_config(page_title="Toggle Emoji", layout="centered")
+st.set_page_config(page_title="Key Test", layout="centered")
 
-if "toggle" not in st.session_state:
-    st.session_state.toggle = False
+# Guardamos la última tecla
+if "last_key" not in st.session_state:
+    st.session_state.last_key = "Ninguna"
 
-def flip_toggle():
-    st.session_state.toggle = not st.session_state.toggle
+st.markdown(f"### Última tecla detectada: `{st.session_state.last_key}`")
 
-# Botón oculto
-btn = st.button("hidden_btn", on_click=flip_toggle)
-
-# JS que simula click al presionar Shift
+# Inyectamos JS
 st.components.v1.html("""
 <script>
 document.addEventListener("keydown", function(event) {
-    if (event.key === "Shift") {
-        const btn = window.parent.document.querySelector('button[kind="secondary"]'); 
-        if (btn && btn.innerText === "hidden_btn") {
-            btn.click();
-        }
-    }
+    const url = new URL(window.location.href);
+    url.searchParams.set("last_key", event.key); // pasamos la tecla
+    window.location.href = url.toString();
 });
 </script>
 """, height=0)
 
-st.markdown("### 🟢" if st.session_state.toggle else "### 🔴")
+# Detectar si hay param
+if "last_key" in st.query_params:
+    st.session_state.last_key = st.query_params["last_key"]
+
+    # limpiar para evitar bucle
+    st.query_params.clear()
+
+    # relanzar
+    st.rerun()
