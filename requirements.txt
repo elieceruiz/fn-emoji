@@ -1,5 +1,2 @@
 streamlit
-streamlit-key-events
-pymongo
-python-dateutil
-pytz
+streamlit-js-eval
