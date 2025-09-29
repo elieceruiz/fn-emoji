@@ -6,7 +6,7 @@ st.set_page_config(page_title="Toggle con tecla", layout="centered")
 if "toggle" not in st.session_state:
     st.session_state.toggle = False
 
-# Leer query param (para comunicación con JS)
+# Leer query param
 query_params = st.query_params
 
 if "toggle" in query_params:
@@ -17,15 +17,19 @@ if "toggle" in query_params:
 # Mostrar estado
 st.markdown("### 🟢" if st.session_state.toggle else "### 🔴")
 
-# Inyectar JS que escucha la tecla y mete un param en la URL
+# DEBUG en pantalla
+st.write("Query params actuales:", dict(query_params))
+
+# Inyectar JS
 st.components.v1.html("""
 <script>
 document.addEventListener("keydown", function(event) {
     if (event.key === "Enter") {
+        console.log("ENTER detectado!");   // <-- DEBUG en consola
         const url = new URL(window.location.href);
         url.searchParams.set("toggle", "1");
-        window.history.pushState({}, "", url);  // Actualiza sin redirigir
-        location.reload();  // Recarga para que Streamlit lo lea
+        console.log("Nueva URL:", url.toString());  // <-- DEBUG en consola
+        window.location.href = url.toString();
     }
 });
 </script>
