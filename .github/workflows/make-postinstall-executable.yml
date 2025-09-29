@@ -11,12 +11,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - name: Give execute permission to postinstall
-        run: chmod +x postinstall
+
+      - name: Give execute permission to postinstall.sh
+        run: chmod +x postinstall.sh
+
       - name: Commit updated permissions
         run: |
           git config user.name github-actions
           git config user.email github-actions@github.com
-          git add postinstall
-          git commit -m "Make postinstall executable" || echo "No changes to commit"
+          git add postinstall.sh
+          git commit -m "Make postinstall.sh executable" || echo "No changes to commit"
           git push
