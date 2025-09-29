@@ -1,5 +1,5 @@
 import streamlit as st
-from streamlit_key_events import key_events
+from streamlit-key-events import key_events
 
 st.set_page_config(page_title="Toggle con tecla", layout="centered")
 
