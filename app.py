@@ -1,28 +1,24 @@
 import streamlit as st
 
-st.set_page_config(page_title="Toggle con tecla", layout="centered")
+st.set_page_config(page_title="Debug tecla", layout="centered")
 
-# Estado inicial
-if "toggle" not in st.session_state:
-    st.session_state.toggle = False
+# Slot para guardar última tecla
+if "last_key" not in st.session_state:
+    st.session_state.last_key = "ninguna"
 
-# Botón que cambia estado
-if st.button("🔀 Cambiar estado", key="toggle_button"):
-    st.session_state.toggle = not st.session_state.toggle
-    st.rerun()
+st.write("Última tecla detectada:", st.session_state.last_key)
 
-# Mostrar estado
-st.markdown("### 🟢" if st.session_state.toggle else "### 🔴")
-
-# Inyectar JS que hace click en el botón al presionar Enter
+# Inyectar JS con Streamlit.setComponentValue
 st.components.v1.html("""
 <script>
 document.addEventListener("keydown", function(event) {
-    if (event.key === "Enter") {
-        console.log("Enter detectado, simulando click en botón...");
-        const boton = window.parent.document.querySelector('button[kind="secondary"]');
-        if (boton) boton.click();
-    }
+    const tecla = event.key;
+    console.log("Tecla detectada:", tecla);
+    // Enviar valor a Streamlit por postMessage
+    window.parent.postMessage({isStreamlitMessage: true, type: "streamlit:setComponentValue", value: tecla}, "*");
 });
 </script>
 """, height=0)
+
+# Mostrar debug de mensajes recibidos
+st.json(st.session_state)
