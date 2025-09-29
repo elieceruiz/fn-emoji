@@ -1,27 +1,20 @@
-# key_button.py
+# key_input_toggle.py
 import streamlit as st
 
-st.set_page_config(page_title="Key Button", layout="centered")
+st.set_page_config(page_title="Key Input Toggle", layout="centered")
 
 if "toggle" not in st.session_state:
     st.session_state.toggle = False
 
-# Inyectamos JS: simula un clic en el botón oculto al presionar tecla
-st.components.v1.html("""
-<script>
-document.addEventListener("keydown", function(event) {
-    if (event.key === "Shift") {  // puedes cambiar "Shift" por "Delete", "Enter", etc
-        const btn = window.parent.document.querySelector("button[data-testid='key-btn']");
-        if (btn) btn.click();
-    }
-});
-</script>
-""", height=0)
+# Campo de texto oculto
+key = st.text_input("Presiona una tecla", key="key_input", label_visibility="collapsed")
 
-# Botón oculto (se activa desde JS)
-if st.button("Key Button", key="key-btn"):
-    st.session_state.toggle = not st.session_state.toggle
-    st.rerun()
+# Cada vez que cambia, se procesa
+if key:
+    if key.lower() in ["delete", "shift", "enter"]:  # puedes ajustar la tecla
+        st.session_state.toggle = not st.session_state.toggle
+        st.session_state.key_input = ""  # limpiamos
+        st.rerun()
 
-# Mostrar estado con emoji
+# Mostrar estado
 st.markdown("### 🟢" if st.session_state.toggle else "### 🔴")
