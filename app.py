@@ -1,18 +1,19 @@
 import streamlit as st
-from streamlit_keyup import keyup
+from streamlit_key_events import key_events
 
 st.set_page_config(page_title="Toggle con tecla", layout="centered")
 
-# Estado inicial
 if "toggle" not in st.session_state:
     st.session_state.toggle = False
 
-# Capturar tecla
-key = keyup("Presiona una tecla")
+# Captura eventos de teclado
+events = key_events()
 
-# Si se presiona Enter, alternar estado
-if key == "Enter":
+if events.key == "Delete":  # cambia la tecla a gusto: "Enter", "Shift", etc.
     st.session_state.toggle = not st.session_state.toggle
+    st.rerun()
 
 # Mostrar estado
 st.markdown("### 🟢" if st.session_state.toggle else "### 🔴")
+
+st.write("Última tecla detectada:", events)
