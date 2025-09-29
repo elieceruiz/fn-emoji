@@ -4,6 +4,9 @@ on:
   push:
     branches: [ "main" ]
 
+permissions:
+  contents: write   # 👈 habilita push desde github-actions[bot]
+
 jobs:
   build-frontend:
     runs-on: ubuntu-latest
@@ -30,5 +33,3 @@ jobs:
           git add my_key_listener/frontend/dist
           git commit -m "Build frontend dist" || echo "No changes to commit"
           git push
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
