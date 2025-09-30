@@ -1,63 +1,26 @@
+# app.py
 import streamlit as st
-import time
-from datetime import datetime, timedelta
-from my_key_listener import my_key_listener  # el mismo que usaste con emojis
+from my_key_listener import my_key_listener
 
-st.set_page_config(page_title="⏱ Cronómetro con Shift", layout="centered")
+st.set_page_config(page_title="Toggle con tecla", layout="centered")
 
-# ==========================
-# ESTADOS
-# ==========================
-if "start_time" not in st.session_state:
-    st.session_state.start_time = None
-if "running" not in st.session_state:
-    st.session_state.running = False
+if "toggle" not in st.session_state:
+    st.session_state.toggle = True  # estado inicial = feliz
 
-# ==========================
-# FUNCIÓN
-# ==========================
-def toggle_timer():
-    if st.session_state.running:
-        # parar y reiniciar
-        st.session_state.running = False
-        st.session_state.start_time = None
-    else:
-        # arrancar
-        st.session_state.running = True
-        st.session_state.start_time = datetime.now()
+# Función que simula el clic en el botón (cambia toggle)
+def on_button_click():
+    st.session_state.toggle = not st.session_state.toggle
 
-# ==========================
-# TECLA SHIFT
-# ==========================
 key = my_key_listener(key="listener")
 
+# Si se presiona Shift, como si se "clickea" el botón
 if key == "Shift":
-    toggle_timer()
-    st.rerun()
+    on_button_click()
 
-# ==========================
-# BOTÓN
-# ==========================
-if st.button("▶️ Arrancar / 🔄 Reiniciar"):
-    toggle_timer()
-    st.rerun()
+# Botón visible opcional (puedes ocultarlo si quieres)
+button_clicked = st.button("Cambiar emoji", on_click=on_button_click)
 
-# ==========================
-# CRONÓMETRO
-# ==========================
-placeholder = st.empty()
+emoji = "😊" if st.session_state.toggle else "😢"
 
-if st.session_state.running and st.session_state.start_time:
-    while st.session_state.running:
-        elapsed = datetime.now() - st.session_state.start_time
-        tiempo = str(timedelta(seconds=int(elapsed.total_seconds())))
-        placeholder.title(f"⏱ {tiempo}")
-
-        time.sleep(1)  # espera 1 segundo antes de actualizar
-
-        if not st.session_state.running:
-            break
-else:
-    placeholder.title("⏱ 00:00:00")
-
+st.markdown(f"### {emoji}")
 st.write("Última tecla detectada:", key)
