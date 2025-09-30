@@ -13,14 +13,14 @@ def on_button_click():
 
 key = my_key_listener(key="listener")
 
-# Si se presiona Shift, como si se "clickea" el botón
-if key == "Shift":
+# Si se presiona tecla, como si se "clickea" el botón
+if key == "Delete":
     on_button_click()
 
 # Botón visible opcional (puedes ocultarlo si quieres)
 button_clicked = st.button("Cambiar emoji", on_click=on_button_click)
 
-emoji = "😊" if st.session_state.toggle else "😢"
+emoji = "🙄" if st.session_state.toggle else "😭"
 
 st.markdown(f"### {emoji}")
 st.write("Última tecla detectada:", key)
