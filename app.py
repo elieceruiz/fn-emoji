@@ -14,17 +14,15 @@ if "running" not in st.session_state:
     st.session_state.running = False
 
 # ==========================
-# FUNCIÓN
+# FUNCIONES
 # ==========================
-def toggle_timer():
-    if st.session_state.running:
-        # parar y reiniciar
-        st.session_state.running = False
-        st.session_state.start_time = None
-    else:
-        # arrancar
-        st.session_state.running = True
-        st.session_state.start_time = datetime.now()
+def start_timer():
+    st.session_state.start_time = datetime.now()
+    st.session_state.running = True
+
+def stop_timer():
+    st.session_state.running = False
+    st.session_state.start_time = None
 
 # ==========================
 # DETECTOR TECLA (Enter)
@@ -32,14 +30,20 @@ def toggle_timer():
 key = my_key_listener(key="listener")
 
 if key == "Enter":
-    toggle_timer()
-    st.rerun()  # forzar refresco inmediato al detectar Enter
+    if st.session_state.running:
+        stop_timer()
+    else:
+        start_timer()
+    st.rerun()
 
 # ==========================
 # BOTÓN
 # ==========================
-if st.button("▶️ Arrancar / 🔄 Reiniciar"):
-    toggle_timer()
+if st.button("▶️ Arrancar / ⏹ Parar"):
+    if st.session_state.running:
+        stop_timer()
+    else:
+        start_timer()
     st.rerun()
 
 # ==========================
