@@ -42,8 +42,8 @@ if st.button("▶️ Arrancar / 🔄 Reiniciar"):
 # ==========================
 # CRONÓMETRO
 # ==========================
-st_autorefresh = st.experimental_rerun  # si usás versión vieja
-st_autorefresh = getattr(st, "autorefresh", None) or st.experimental_rerun
+st_autorefresh = st.rerun  # si usás versión vieja
+st_autorefresh = getattr(st, "autorefresh", None) or st.rerun
 
 if st.session_state.running and st.session_state.start_time:
     elapsed = datetime.now() - st.session_state.start_time
