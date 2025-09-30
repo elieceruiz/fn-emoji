@@ -1,38 +1,38 @@
-# app.py
+# cronometro_front.py
 import streamlit as st
-from datetime import datetime
 import time
-from my_key_listener import my_key_listener
+from datetime import datetime, timedelta
 
-st.set_page_config(page_title="Cronómetro con toggle y autorefresh", layout="centered")
+st.set_page_config("⏱️ Cronómetro Demo", layout="centered")
+st.title("⏱️ Demo de Cronómetro en Front")
 
-if "toggle" not in st.session_state:
-    st.session_state.toggle = False
-if "start_time" not in st.session_state:
-    st.session_state.start_time = None
+# Guardar estado del cronómetro
+if "inicio" not in st.session_state:
+    st.session_state.inicio = None
+if "corriendo" not in st.session_state:
+    st.session_state.corriendo = False
 
-def on_toggle():
-    if st.session_state.toggle:
-        st.session_state.toggle = False
-        st.session_state.start_time = None
-    else:
-        st.session_state.toggle = True
-        st.session_state.start_time = datetime.now()
+# Botón iniciar
+if not st.session_state.corriendo:
+    if st.button("🟢 Iniciar"):
+        st.session_state.inicio = datetime.now()
+        st.session_state.corriendo = True
+        st.rerun()
 
-key = my_key_listener(key="listener")
+# Botón detener
+if st.session_state.corriendo:
+    stop = st.button("⏹️ Detener")
+    marcador = st.empty()
 
-if key == "Shift":
-    on_toggle()
-    st.rerun()
+    while st.session_state.corriendo:
+        ahora = datetime.now()
+        segundos = int((ahora - st.session_state.inicio).total_seconds())
+        duracion = str(timedelta(seconds=segundos))
+        marcador.markdown(f"### ⏱️ Duración: {duracion}")
 
-button_clicked = st.button("Iniciar/Parar", on_click=on_toggle)
+        if stop:
+            st.session_state.corriendo = False
+            st.success("✅ Cronómetro detenido.")
+            break
 
-if st.session_state.toggle and st.session_state.start_time:
-    elapsed = datetime.now() - st.session_state.start_time
-    st.markdown(f"Tiempo transcurrido: {str(elapsed).split('.')[0]}")
-    time.sleep(1)
-    st.rerun()
-else:
-    st.markdown("Cronómetro detenido")
-
-st.write("Última tecla detectada:", key)
+        time.sleep(1)
