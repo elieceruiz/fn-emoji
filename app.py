@@ -2,12 +2,12 @@
 import streamlit as st
 import time
 from datetime import datetime
-from my_key_listener import my_key_listener
+from my_key_listener import my_key_listener  # tu listener React funcional
 
-st.set_page_config(page_title="⏱ Cronómetro con tecla", layout="centered")
+st.set_page_config(page_title="⏱ Cronómetro con Shift", layout="centered")
 
 # ==========================
-# ESTADOS INICIALES
+# ESTADOS
 # ==========================
 if "start_time" not in st.session_state:
     st.session_state.start_time = None
@@ -15,50 +15,45 @@ if "start_time" not in st.session_state:
 if "running" not in st.session_state:
     st.session_state.running = False
 
-# ==========================
-# LÓGICA DEL CRONÓMETRO
-# ==========================
-def start_timer():
-    st.session_state.start_time = datetime.now()
-    st.session_state.running = True
+if "last_display" not in st.session_state:
+    st.session_state.last_display = "00:00:00"
 
-def reset_timer():
-    st.session_state.start_time = None
-    st.session_state.running = False
-
+# ==========================
+# FUNCIONES
+# ==========================
 def toggle_timer():
     if st.session_state.running:
-        reset_timer()
+        # parar y reiniciar
+        st.session_state.running = False
+        st.session_state.start_time = None
+        st.session_state.last_display = "00:00:00"
     else:
-        start_timer()
+        # arrancar
+        st.session_state.running = True
+        st.session_state.start_time = datetime.now()
 
 # ==========================
 # CAPTURA DE TECLA
 # ==========================
 key = my_key_listener(key="listener")
-
-if key == "Delete":  # tecla Suprimir
+if key == "Shift":   # ahora sí: Shift
     toggle_timer()
-    key = None  # consumir evento
+    st.rerun()
 
 # ==========================
-# BOTÓN DE CONTROL
+# BOTÓN ÚNICO
 # ==========================
 st.button("▶️ Arrancar / 🔄 Reiniciar", on_click=toggle_timer)
 
 # ==========================
-# VISUALIZACIÓN
+# CRONÓMETRO
 # ==========================
-st.title("⏱ Cronómetro")
-placeholder = st.empty()
-
-while st.session_state.running:
+if st.session_state.running and st.session_state.start_time:
     elapsed = datetime.now() - st.session_state.start_time
     h, r = divmod(elapsed.seconds, 3600)
     m, s = divmod(r, 60)
-    placeholder.markdown(f"### {h:02d}:{m:02d}:{s:02d}")
+    st.session_state.last_display = f"{h:02d}:{m:02d}:{s:02d}"
     time.sleep(1)
     st.rerun()
 
-if not st.session_state.running:
-    placeholder.markdown("### 00:00:00")
+st.title(f"⏱ {st.session_state.last_display}")
