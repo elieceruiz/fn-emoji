@@ -1,11 +1,9 @@
 # app.py
 import streamlit as st
 from datetime import datetime, timedelta
-import pytz
 from my_key_listener import my_key_listener
 
-st.set_page_config(page_title="⏱ Cronómetro con Shift", layout="centered")
-tz = pytz.timezone("America/Bogota")
+st.set_page_config(page_title="⏱ Cronómetro con Enter", layout="centered")
 
 # ==========================
 # ESTADOS
@@ -26,15 +24,16 @@ def toggle_timer():
     else:
         # arrancar
         st.session_state.running = True
-        st.session_state.start_time = datetime.now(tz)
+        st.session_state.start_time = datetime.now()
 
 # ==========================
-# DETECTOR TECLA (Shift)
+# DETECTOR TECLA (Enter)
 # ==========================
 key = my_key_listener(key="listener")
-if key == "Shift":
+
+if key == "Enter":
     toggle_timer()
-    st.rerun()
+    st.rerun()  # forzar refresco inmediato al detectar Enter
 
 # ==========================
 # BOTÓN
@@ -55,7 +54,7 @@ if st.session_state.running:
 # CRONÓMETRO
 # ==========================
 if st.session_state.running and st.session_state.start_time:
-    elapsed = datetime.now(tz) - st.session_state.start_time
+    elapsed = datetime.now() - st.session_state.start_time
     tiempo = str(timedelta(seconds=int(elapsed.total_seconds())))
     st.title(f"⏱ {tiempo}")
 else:
@@ -64,4 +63,4 @@ else:
 # ==========================
 # DEBUG
 # ==========================
-st.caption(f"Última tecla detectada: {key}")
+st.write("Última tecla detectada:", key)
