@@ -26,7 +26,7 @@ st.write(f"DEBUG: Última tecla detectada: {key}")
 
 if key == "Shift":
     toggle_cronometro()
-    st.experimental_rerun()
+    st.rerun()
 
 st.title("⏱️ Cronómetro activado con Shift")
 
@@ -34,7 +34,7 @@ if st.session_state.running:
     elapsed = datetime.now() - st.session_state.start_time
     st.markdown(f"### Duración: {str(elapsed).split('.')[0]}")
     time.sleep(1)  # esperar un segundo
-    st.experimental_rerun()  # recargar para actualizar tiempo real
+    st.rerun()  # recargar para actualizar tiempo real
 else:
     if "end_time" in st.session_state and st.session_state.end_time:
         elapsed = st.session_state.end_time - st.session_state.start_time
@@ -45,4 +45,4 @@ else:
 # Botón para toggle manual
 if st.button("Iniciar/Parar"):
     toggle_cronometro()
-    st.experimental_rerun()
+    st.rerun()
