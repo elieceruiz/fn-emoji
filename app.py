@@ -1,26 +1,32 @@
-# app.py
 import streamlit as st
-from my_key_listener import my_key_listener
+import time
+from datetime import datetime
 
-st.set_page_config(page_title="Toggle con tecla", layout="centered")
+st.set_page_config(page_title="⏱ Cronómetro con tecla", layout="centered")
 
-if "toggle" not in st.session_state:
-    st.session_state.toggle = True  # estado inicial = feliz
+# --- Inicialización ---
+if "start_time" not in st.session_state:
+    st.session_state.start_time = datetime.now()
 
-# Función que simula el clic en el botón (cambia toggle)
-def on_button_click():
-    st.session_state.toggle = not st.session_state.toggle
+if "last_key" not in st.session_state:
+    st.session_state.last_key = None
 
-key = my_key_listener(key="listener")
+# --- Captura tecla con text_input ---
+key = st.text_input("Escribe aquí y presiona ENTER (ej: shift)").lower()
 
-# Si se presiona Shift, como si se "clickea" el botón
-if key == "Shift":
-    on_button_click()
+if key == "shift":
+    st.session_state.start_time = datetime.now()
+    st.session_state.last_key = key
+    st.experimental_rerun()
 
-# Botón visible opcional (puedes ocultarlo si quieres)
-button_clicked = st.button("Cambiar emoji", on_click=on_button_click)
+# --- Mostrar cronómetro ---
+placeholder = st.empty()
 
-emoji = "😊" if st.session_state.toggle else "😢"
-
-st.markdown(f"### {emoji}")
-st.write("Última tecla detectada:", key)
+while True:
+    elapsed = datetime.now() - st.session_state.start_time
+    segundos = int(elapsed.total_seconds())
+    h = segundos // 3600
+    m = (segundos % 3600) // 60
+    s = segundos % 60
+    placeholder.markdown(f"### ⏱ {h:02d}:{m:02d}:{s:02d}")
+    time.sleep(1)
