@@ -1,32 +1,56 @@
+# app.py
 import streamlit as st
-import time
-from datetime import datetime
+from datetime import datetime, timedelta
+from my_key_listener import my_key_listener
 
-st.set_page_config(page_title="⏱ Cronómetro con tecla", layout="centered")
+st.set_page_config(page_title="⏱ Cronómetro con Shift", layout="centered")
 
-# --- Inicialización ---
+# ==========================
+# ESTADOS
+# ==========================
 if "start_time" not in st.session_state:
-    st.session_state.start_time = datetime.now()
+    st.session_state.start_time = None
+if "running" not in st.session_state:
+    st.session_state.running = False
 
-if "last_key" not in st.session_state:
-    st.session_state.last_key = None
+# ==========================
+# FUNCIÓN
+# ==========================
+def toggle_timer():
+    if st.session_state.running:
+        # parar y reiniciar
+        st.session_state.running = False
+        st.session_state.start_time = None
+    else:
+        # arrancar
+        st.session_state.running = True
+        st.session_state.start_time = datetime.now()
 
-# --- Captura tecla con text_input ---
-key = st.text_input("Escribe aquí y presiona ENTER (ej: shift)").lower()
+# ==========================
+# DETECTOR TECLA (Shift)
+# ==========================
+key = my_key_listener(key="listener")
+if key == "Shift":
+    toggle_timer()
 
-if key == "shift":
-    st.session_state.start_time = datetime.now()
-    st.session_state.last_key = key
-    st.experimental_rerun()
+# ==========================
+# BOTÓN (opcional)
+# ==========================
+if st.button("▶️ Arrancar / 🔄 Reiniciar"):
+    toggle_timer()
 
-# --- Mostrar cronómetro ---
-placeholder = st.empty()
+# ==========================
+# CRONÓMETRO
+# ==========================
+st_autorefresh = st.experimental_rerun  # si usás versión vieja
+st_autorefresh = getattr(st, "autorefresh", None) or st.experimental_rerun
 
-while True:
+if st.session_state.running and st.session_state.start_time:
     elapsed = datetime.now() - st.session_state.start_time
-    segundos = int(elapsed.total_seconds())
-    h = segundos // 3600
-    m = (segundos % 3600) // 60
-    s = segundos % 60
-    placeholder.markdown(f"### ⏱ {h:02d}:{m:02d}:{s:02d}")
-    time.sleep(1)
+    tiempo = str(timedelta(seconds=int(elapsed.total_seconds())))
+    st.title(f"⏱ {tiempo}")
+else:
+    st.title("⏱ 00:00:00")
+
+# Mostrar última tecla detectada
+st.write("Última tecla detectada:", key)
