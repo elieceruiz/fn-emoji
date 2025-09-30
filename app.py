@@ -53,8 +53,8 @@ placeholder = st.empty()
 
 if st.session_state.corriendo and st.session_state.inicio:
     # refrescar cada 1 segundo
-    st_autorefresh = st.experimental_rerun  # compatibilidad
-    st.experimental_set_query_params(refresh=str(datetime.now()))  # hack
+    st_autorefresh = st.rerun  # compatibilidad
+    st.set_query_params(refresh=str(datetime.now()))  # hack
     ahora = datetime.now()
     segundos = int((ahora - st.session_state.inicio).total_seconds())
     duracion = str(timedelta(seconds=segundos))
