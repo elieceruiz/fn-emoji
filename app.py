@@ -2,7 +2,7 @@ import streamlit as st
 import time
 from my_key_listener import my_key_listener
 
-st.set_page_config(page_title="Cronómetro con tecla", layout="centered")
+st.set_page_config(page_title="Cronómetro con Teclas", layout="centered")
 
 # Inicializar estados en session_state
 if "running" not in st.session_state:
@@ -26,6 +26,17 @@ def reset_timer():
     st.session_state.elapsed_time = 0.0
     st.session_state.start_time = 0.0
 
+# Título
+st.markdown("# Cronómetro con Teclas")
+
+# Instrucciones
+st.info("""
+**Instrucciones**  
+- Presiona **Delete** para iniciar el cronómetro.  
+- Presiona **Shift** para reiniciar y detener.  
+- Usa los botones para control manual.
+""")
+
 # Detectar tecla
 key = my_key_listener(key="listener")
 
@@ -39,14 +50,14 @@ if key != st.session_state.last_key:  # Evitar repeticiones rápidas
         reset_timer()
         st.rerun()
 
-# Botones para control manual (opcional)
+# Botones para control manual
 col1, col2 = st.columns(2)
 with col1:
-    if st.button("Iniciar (Delete)"):
+    if st.button("Iniciar (Delete)", use_container_width=True):
         start_timer()
         st.rerun()
 with col2:
-    if st.button("Reiniciar (Shift)"):
+    if st.button("Reiniciar (Shift)", use_container_width=True):
         reset_timer()
         st.rerun()
 
@@ -63,13 +74,20 @@ seconds = int(current_time % 60)
 formatted_time = f"{hours:02d}:{minutes:02d}:{seconds:02d}"
 
 # Mostrar cronómetro
-st.markdown(f"### Cronómetro: {formatted_time}")
-st.write("Estado:", "Corriendo" if st.session_state.running else "Detenido")
-st.write("Última tecla detectada:", key)
+st.markdown(f"### {formatted_time}", unsafe_allow_html=True)
+
+# Mostrar estado
+if st.session_state.running:
+    st.success("Estado: Corriendo")
+else:
+    st.error("Estado: Detenido")
+
+# Mostrar última tecla detectada
+st.write("Última tecla:", key if key else "Ninguna")
 
 # Emoji para feedback visual
 emoji = "🏃‍♂️" if st.session_state.running else "🛑"
-st.markdown(f"#### {emoji}")
+st.markdown(f"## {emoji}", unsafe_allow_html=True)
 
 # Actualización automática solo si está corriendo
 if st.session_state.running:
