@@ -1,45 +1,26 @@
 # app.py
 import streamlit as st
-from datetime import datetime, timedelta
-import time
-from my_key_listener import my_key_listener  # Componente React que detecta teclas
+from my_key_listener import my_key_listener
 
-# Inicializamos el estado para controlar el cronómetro
-if "running" not in st.session_state:
-    st.session_state.running = False
-if "start_time" not in st.session_state:
-    st.session_state.start_time = None
+st.set_page_config(page_title="Toggle con tecla", layout="centered")
 
-def toggle_cronometro():
-    if st.session_state.running:
-        st.session_state.running = False
-        st.session_state.start_time = None
-    else:
-        st.session_state.running = True
-        st.session_state.start_time = datetime.now()
+if "toggle" not in st.session_state:
+    st.session_state.toggle = True  # estado inicial = feliz
 
-# Detectamos la tecla con el componente React
+# Función que simula el clic en el botón (cambia toggle)
+def on_button_click():
+    st.session_state.toggle = not st.session_state.toggle
+
 key = my_key_listener(key="listener")
 
-# Mostrar para diagnóstico qué tecla se detecta
-st.write(f"Última tecla detectada: {key}")
-
-# Si la tecla es Shift, toggle del cronómetro y rerun
+# Si se presiona Shift, como si se "clickea" el botón
 if key == "Shift":
-    toggle_cronometro()
-    st.rerun()
+    on_button_click()
 
-st.title("⏱️ Cronómetro con tecla Shift")
+# Botón visible opcional (puedes ocultarlo si quieres)
+button_clicked = st.button("Cambiar emoji", on_click=on_button_click)
 
-if st.session_state.running and st.session_state.start_time:
-    elapsed = datetime.now() - st.session_state.start_time
-    st.markdown(f"### Tiempo transcurrido: {str(elapsed).split('.')[0]}")
-    time.sleep(1)  # Pausa para refrescar cada segundo
-    st.rerun()
-else:
-    st.markdown("### Cronómetro detenido")
+emoji = "😊" if st.session_state.toggle else "😢"
 
-# Botón manual para iniciar o parar
-if st.button("Iniciar/Parar"):
-    toggle_cronometro()
-    st.rerun()
+st.markdown(f"### {emoji}")
+st.write("Última tecla detectada:", key)
