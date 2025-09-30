@@ -42,8 +42,11 @@ if st.button("▶️ Arrancar / 🔄 Reiniciar"):
 # ==========================
 # CRONÓMETRO
 # ==========================
-st_autorefresh = st.rerun  # si usás versión vieja
-st_autorefresh = getattr(st, "autorefresh", None) or st.rerun
+# refresca la app cada 1 segundo mientras corre
+if st.session_state.running:
+    st_autorefresh = getattr(st, "autorefresh", None)
+    if st_autorefresh:
+        st_autorefresh(interval=1000, key="tick")
 
 if st.session_state.running and st.session_state.start_time:
     elapsed = datetime.now() - st.session_state.start_time
