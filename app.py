@@ -1,7 +1,6 @@
 # app.py
 import streamlit as st
 from datetime import datetime, timedelta
-import time
 from my_key_listener import my_key_listener
 
 st.set_page_config(page_title="⏱ Cronómetro con Shift", layout="centered")
@@ -31,6 +30,7 @@ def toggle_timer():
 # DETECTOR TECLA (Shift)
 # ==========================
 key = my_key_listener(key="listener")
+
 if key == "Shift":
     toggle_timer()
 
