@@ -15,12 +15,13 @@ def toggle_cronometro():
         st.session_state.running = True
         st.session_state.start_time = datetime.now()
 
-st.title("🕰️ Cronómetro Fase 1")
+st.title("🕰️ Cronómetro Fase 2")
 
 if st.button("Iniciar/Parar"):
     toggle_cronometro()
 
-if st.session_state.running:
-    st.write(f"Cronómetro iniciado a las {st.session_state.start_time}")
+if st.session_state.running and st.session_state.start_time:
+    elapsed = datetime.now() - st.session_state.start_time
+    st.write(f"Tiempo transcurrido: {str(elapsed).split('.')[0]}")
 else:
     st.write("Cronómetro detenido")
