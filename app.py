@@ -1,8 +1,9 @@
 import streamlit as st
 import time
 from datetime import datetime, timedelta
+from my_key_listener import my_key_listener  # el mismo que usaste con emojis
 
-st.set_page_config(page_title="⏱ Cronómetro al segundo", layout="centered")
+st.set_page_config(page_title="⏱ Cronómetro con Shift", layout="centered")
 
 # ==========================
 # ESTADOS
@@ -26,11 +27,20 @@ def toggle_timer():
         st.session_state.start_time = datetime.now()
 
 # ==========================
+# TECLA SHIFT
+# ==========================
+key = my_key_listener(key="listener")
+
+if key == "Shift":
+    toggle_timer()
+    st.rerun()
+
+# ==========================
 # BOTÓN
 # ==========================
 if st.button("▶️ Arrancar / 🔄 Reiniciar"):
     toggle_timer()
-    st.rerun()   # <<--- antes era experimental_rerun
+    st.rerun()
 
 # ==========================
 # CRONÓMETRO
@@ -49,3 +59,5 @@ if st.session_state.running and st.session_state.start_time:
             break
 else:
     placeholder.title("⏱ 00:00:00")
+
+st.write("Última tecla detectada:", key)
