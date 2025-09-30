@@ -26,32 +26,27 @@ def reset_timer():
     st.session_state.elapsed_time = 0.0
     st.session_state.start_time = 0.0
 
-# Mostrar instrucciones en la interfaz
-st.markdown("## Instrucciones")
-st.write("👉 **Presiona Shift** para iniciar el cronómetro.")
-st.write("👉 **Presiona Delete** para reiniciar y detener el cronómetro.")
-
 # Detectar tecla
 key = my_key_listener(key="listener")
 
 # Lógica de teclas
 if key != st.session_state.last_key:  # Evitar repeticiones rápidas
     st.session_state.last_key = key
-    if key == "Shift":  # Shift inicia el cronómetro
+    if key == "Delete":  # Delete inicia el cronómetro
         start_timer()
         st.rerun()
-    elif key == "Delete":  # Delete reinicia y detiene
+    elif key == "Shift":  # Shift reinicia y detiene
         reset_timer()
         st.rerun()
 
 # Botones para control manual (opcional)
 col1, col2 = st.columns(2)
 with col1:
-    if st.button("Iniciar (Shift)"):
+    if st.button("Iniciar (Delete)"):
         start_timer()
         st.rerun()
 with col2:
-    if st.button("Reiniciar (Delete)"):
+    if st.button("Reiniciar (Shift)"):
         reset_timer()
         st.rerun()
 
