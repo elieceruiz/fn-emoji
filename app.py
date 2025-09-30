@@ -1,25 +1,21 @@
-# app.py
 import streamlit as st
 import time
 from datetime import datetime
-from my_key_listener import my_key_listener  # tu listener React funcional
 
-st.set_page_config(page_title="⏱ Cronómetro con Shift", layout="centered")
+st.set_page_config(page_title="⏱ Cronómetro Demo", layout="centered")
 
 # ==========================
 # ESTADOS
 # ==========================
 if "start_time" not in st.session_state:
     st.session_state.start_time = None
-
 if "running" not in st.session_state:
     st.session_state.running = False
-
 if "last_display" not in st.session_state:
     st.session_state.last_display = "00:00:00"
 
 # ==========================
-# FUNCIONES
+# FUNCIÓN
 # ==========================
 def toggle_timer():
     if st.session_state.running:
@@ -33,15 +29,7 @@ def toggle_timer():
         st.session_state.start_time = datetime.now()
 
 # ==========================
-# CAPTURA DE TECLA
-# ==========================
-key = my_key_listener(key="listener")
-if key == "Shift":   # ahora sí: Shift
-    toggle_timer()
-    st.rerun()
-
-# ==========================
-# BOTÓN ÚNICO
+# BOTÓN
 # ==========================
 st.button("▶️ Arrancar / 🔄 Reiniciar", on_click=toggle_timer)
 
