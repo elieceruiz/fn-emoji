@@ -30,7 +30,7 @@ def toggle_timer():
 # ==========================
 if st.button("▶️ Arrancar / 🔄 Reiniciar"):
     toggle_timer()
-    st.experimental_rerun()
+    st.rerun()   # <<--- antes era experimental_rerun
 
 # ==========================
 # CRONÓMETRO
@@ -45,7 +45,6 @@ if st.session_state.running and st.session_state.start_time:
 
         time.sleep(1)  # espera 1 segundo antes de actualizar
 
-        # si el usuario presiona el botón en medio del loop
         if not st.session_state.running:
             break
 else:
