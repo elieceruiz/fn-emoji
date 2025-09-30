@@ -14,40 +14,44 @@ if "elapsed_time" not in st.session_state:
 if "last_key" not in st.session_state:
     st.session_state.last_key = None  # Última tecla detectada
 
-# Función para alternar el estado del cronómetro
-def toggle_timer():
-    if st.session_state.running:
-        # Detener el cronómetro y acumular el tiempo
-        st.session_state.elapsed_time += time.time() - st.session_state.start_time
-        st.session_state.running = False
-    else:
-        # Iniciar el cronómetro
+# Función para iniciar el cronómetro
+def start_timer():
+    if not st.session_state.running:  # Solo iniciar si no está corriendo
         st.session_state.start_time = time.time()
         st.session_state.running = True
 
-# Función para reiniciar el cronómetro
+# Función para reiniciar y detener el cronómetro
 def reset_timer():
     st.session_state.running = False
     st.session_state.elapsed_time = 0.0
     st.session_state.start_time = 0.0
 
+# Mostrar instrucciones en la interfaz
+st.markdown("## Instrucciones")
+st.write("👉 **Presiona Shift** para iniciar el cronómetro.")
+st.write("👉 **Presiona Delete** para reiniciar y detener el cronómetro.")
+
 # Detectar tecla
 key = my_key_listener(key="listener")
 
-# Alternar cronómetro si se presiona Delete o Shift (evitar repeticiones rápidas)
-if key in ["Delete", "Shift"] and key != st.session_state.last_key:
+# Lógica de teclas
+if key != st.session_state.last_key:  # Evitar repeticiones rápidas
     st.session_state.last_key = key
-    toggle_timer()
-    st.rerun()  # Forzar actualización para reflejar el cambio de estado
+    if key == "Shift":  # Shift inicia el cronómetro
+        start_timer()
+        st.rerun()
+    elif key == "Delete":  # Delete reinicia y detiene
+        reset_timer()
+        st.rerun()
 
-# Botones para control manual
+# Botones para control manual (opcional)
 col1, col2 = st.columns(2)
 with col1:
-    if st.button("Iniciar/Detener"):
-        toggle_timer()
+    if st.button("Iniciar (Shift)"):
+        start_timer()
         st.rerun()
 with col2:
-    if st.button("Reiniciar"):
+    if st.button("Reiniciar (Delete)"):
         reset_timer()
         st.rerun()
 
@@ -57,10 +61,11 @@ if st.session_state.running:
 else:
     current_time = st.session_state.elapsed_time
 
-# Formatear tiempo como MM:SS
-minutes = int(current_time // 60)
+# Formatear tiempo como HH:MM:SS
+hours = int(current_time // 3600)
+minutes = int((current_time % 3600) // 60)
 seconds = int(current_time % 60)
-formatted_time = f"{minutes:02d}:{seconds:02d}"
+formatted_time = f"{hours:02d}:{minutes:02d}:{seconds:02d}"
 
 # Mostrar cronómetro
 st.markdown(f"### Cronómetro: {formatted_time}")
@@ -73,5 +78,5 @@ st.markdown(f"#### {emoji}")
 
 # Actualización automática solo si está corriendo
 if st.session_state.running:
-    time.sleep(0.1)  # Pequeña pausa para evitar reruns demasiado rápidos
+    time.sleep(0.1)  # Pausa para evitar reruns demasiado rápidos
     st.rerun()
