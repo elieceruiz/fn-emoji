@@ -2,26 +2,51 @@
 import streamlit as st
 import time
 from datetime import datetime, timedelta
+from my_key_listener import my_key_listener  # el mismo que ya usás en app.py
 
 st.set_page_config("⏱️ Cronómetro Demo", layout="centered")
-st.title("⏱️ Demo de Cronómetro en Front")
+st.title("⏱️ Demo de Cronómetro en Front con tecla Shift")
 
-# Guardar estado del cronómetro
+# ===============================
+# Estado base
+# ===============================
 if "inicio" not in st.session_state:
     st.session_state.inicio = None
 if "corriendo" not in st.session_state:
     st.session_state.corriendo = False
 
-# Botón iniciar
+# ===============================
+# Funciones
+# ===============================
+def start():
+    st.session_state.inicio = datetime.now()
+    st.session_state.corriendo = True
+    st.rerun()
+
+def stop():
+    st.session_state.corriendo = False
+    st.success("✅ Cronómetro detenido.")
+    st.rerun()
+
+# ===============================
+# Key listener (Shift)
+# ===============================
+key = my_key_listener(key="listener")
+
+if key == "Shift":
+    if not st.session_state.corriendo:
+        start()
+    else:
+        stop()
+
+# ===============================
+# Interfaz
+# ===============================
 if not st.session_state.corriendo:
     if st.button("🟢 Iniciar"):
-        st.session_state.inicio = datetime.now()
-        st.session_state.corriendo = True
-        st.rerun()
-
-# Botón detener
-if st.session_state.corriendo:
-    stop = st.button("⏹️ Detener")
+        start()
+else:
+    stop_button = st.button("⏹️ Detener")
     marcador = st.empty()
 
     while st.session_state.corriendo:
@@ -30,9 +55,11 @@ if st.session_state.corriendo:
         duracion = str(timedelta(seconds=segundos))
         marcador.markdown(f"### ⏱️ Duración: {duracion}")
 
-        if stop:
-            st.session_state.corriendo = False
-            st.success("✅ Cronómetro detenido.")
+        if stop_button:
+            stop()
             break
 
         time.sleep(1)
+
+# Mostrar última tecla detectada (para debug)
+st.caption(f"Última tecla detectada: {key}")
