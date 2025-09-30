@@ -1,62 +1,26 @@
-# cronometro_shift.py
+# app.py
 import streamlit as st
-import time
-from datetime import datetime, timedelta
 from my_key_listener import my_key_listener
 
-st.set_page_config(page_title="⏱️ Cronómetro con Shift", layout="centered")
+st.set_page_config(page_title="Toggle con tecla", layout="centered")
 
-# =======================
-# ESTADO
-# =======================
-if "running" not in st.session_state:
-    st.session_state.running = False
-if "start_time" not in st.session_state:
-    st.session_state.start_time = None
-if "elapsed" not in st.session_state:
-    st.session_state.elapsed = timedelta(0)
+if "toggle" not in st.session_state:
+    st.session_state.toggle = True  # estado inicial = feliz
 
-# =======================
-# TOGGLE
-# =======================
-def toggle():
-    if not st.session_state.running:
-        st.session_state.start_time = datetime.now()
-        st.session_state.running = True
-    else:
-        st.session_state.running = False
-        st.session_state.start_time = None
-        st.session_state.elapsed = timedelta(0)
+# Función que simula el clic en el botón (cambia toggle)
+def on_button_click():
+    st.session_state.toggle = not st.session_state.toggle
 
-# =======================
-# KEY LISTENER
-# =======================
 key = my_key_listener(key="listener")
+
+# Si se presiona Shift, como si se "clickea" el botón
 if key == "Shift":
-    toggle()
-    st.rerun()
+    on_button_click()
 
-# =======================
-# UI
-# =======================
-st.title("⏱️ Cronómetro con botón único / tecla Shift")
+# Botón visible opcional (puedes ocultarlo si quieres)
+button_clicked = st.button("Cambiar emoji", on_click=on_button_click)
 
-label = "⛔ Detener" if st.session_state.running else "🟢 Iniciar"
-if st.button(label):
-    toggle()
-    st.rerun()
+emoji = "😊" if st.session_state.toggle else "😢"
 
-placeholder = st.empty()
-
-if st.session_state.running and st.session_state.start_time:
-    # Actualizar cronómetro
-    elapsed = datetime.now() - st.session_state.start_time
-    st.session_state.elapsed = elapsed
-    placeholder.markdown(f"### ⏱️ Duración: {str(elapsed).split('.')[0]}")
-    time.sleep(1)
-    st.rerun()
-else:
-    # Mostrar 00:00:00 cuando está detenido
-    placeholder.markdown("### ⏱️ Duración: 00:00:00")
-
-st.caption(f"Última tecla detectada: {key}")
+st.markdown(f"### {emoji}")
+st.write("Última tecla detectada:", key)
