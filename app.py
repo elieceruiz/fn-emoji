@@ -1,6 +1,8 @@
 # app.py
 import streamlit as st
 from datetime import datetime
+import time
+from my_key_listener import my_key_listener
 
 if "running" not in st.session_state:
     st.session_state.running = False
@@ -15,13 +17,22 @@ def toggle_cronometro():
         st.session_state.running = True
         st.session_state.start_time = datetime.now()
 
-st.title("🕰️ Cronómetro Fase 2")
+key = my_key_listener(key="listener")
 
-if st.button("Iniciar/Parar"):
+if key == "Shift":
     toggle_cronometro()
+    st.rerun()
+
+st.title("⏱️ Cronómetro con tecla Shift (Fase 3)")
 
 if st.session_state.running and st.session_state.start_time:
     elapsed = datetime.now() - st.session_state.start_time
-    st.write(f"Tiempo transcurrido: {str(elapsed).split('.')[0]}")
+    st.markdown(f"### Tiempo transcurrido: {str(elapsed).split('.')[0]}")
+    time.sleep(1)
+    st.rerun()
 else:
-    st.write("Cronómetro detenido")
+    st.markdown("### Cronómetro detenido")
+
+if st.button("Iniciar/Parar"):
+    toggle_cronometro()
+    st.rerun()
