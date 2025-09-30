@@ -1,8 +1,7 @@
 # cronometro_shift.py
 import streamlit as st
-import time
 from datetime import datetime, timedelta
-from my_key_listener import my_key_listener  # el mismo usado antes
+from my_key_listener import my_key_listener
 
 st.set_page_config("⏱️ Cronómetro Toggle", layout="centered")
 st.title("⏱️ Cronómetro con botón único / tecla Shift")
@@ -22,11 +21,9 @@ if "ultima_tecla" not in st.session_state:
 # ===============================
 def toggle():
     if not st.session_state.corriendo:
-        # Iniciar
         st.session_state.inicio = datetime.now()
         st.session_state.corriendo = True
     else:
-        # Detener y resetear
         st.session_state.corriendo = False
         st.session_state.inicio = None
 
@@ -50,19 +47,17 @@ if st.button(label):
     st.rerun()
 
 # ===============================
-# Cronómetro
+# Cronómetro con autorefresh
 # ===============================
-marcador = st.empty()
+placeholder = st.empty()
 
 if st.session_state.corriendo and st.session_state.inicio:
-    while st.session_state.corriendo:
-        ahora = datetime.now()
-        segundos = int((ahora - st.session_state.inicio).total_seconds())
-        duracion = str(timedelta(seconds=segundos))
-        marcador.markdown(f"### ⏱️ Duración: {duracion}")
-        time.sleep(1)
+    # refrescar cada 1 segundo
+    st_autorefresh = st.experimental_rerun  # compatibilidad
+    st.experimental_set_query_params(refresh=str(datetime.now()))  # hack
+    ahora = datetime.now()
+    segundos = int((ahora - st.session_state.inicio).total_seconds())
+    duracion = str(timedelta(seconds=segundos))
+    placeholder.markdown(f"### ⏱️ Duración: {duracion}")
 else:
-    marcador.markdown("### ⏱️ Duración: 00:00:00")
-
-# Debug opcional
-st.caption(f"Última tecla detectada: {st.session_state.ultima_tecla}")
+    placeholder.markdown("### ⏱️ Duración: 00:00:00")
