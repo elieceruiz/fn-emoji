@@ -3,47 +3,42 @@ import streamlit as st
 from datetime import datetime, timedelta
 from my_key_listener import my_key_listener
 
-st.set_page_config(page_title="⏱ Cronómetro con Enter", layout="centered")
+st.set_page_config(page_title="⏱ Cronómetro Enter", layout="centered")
 
 # ==========================
 # ESTADOS
 # ==========================
-if "start_time" not in st.session_state:
-    st.session_state.start_time = None
 if "running" not in st.session_state:
     st.session_state.running = False
+if "start_time" not in st.session_state:
+    st.session_state.start_time = None
 
 # ==========================
 # FUNCIONES
 # ==========================
-def start_timer():
-    st.session_state.start_time = datetime.now()
-    st.session_state.running = True
-
-def stop_timer():
-    st.session_state.running = False
-    st.session_state.start_time = None
+def toggle_timer():
+    if st.session_state.running:
+        # detener
+        st.session_state.running = False
+        st.session_state.start_time = None
+    else:
+        # arrancar
+        st.session_state.running = True
+        st.session_state.start_time = datetime.now()
 
 # ==========================
-# DETECTOR TECLA (Enter)
+# DETECTOR DE TECLA
 # ==========================
 key = my_key_listener(key="listener")
-
 if key == "Enter":
-    if st.session_state.running:
-        stop_timer()
-    else:
-        start_timer()
+    toggle_timer()
     st.rerun()
 
 # ==========================
 # BOTÓN
 # ==========================
 if st.button("▶️ Arrancar / ⏹ Parar"):
-    if st.session_state.running:
-        stop_timer()
-    else:
-        start_timer()
+    toggle_timer()
     st.rerun()
 
 # ==========================
@@ -67,4 +62,4 @@ else:
 # ==========================
 # DEBUG
 # ==========================
-st.write("Última tecla detectada:", key)
+st.caption(f"Última tecla detectada: {key}")
