@@ -4,23 +4,44 @@ from my_key_listener import my_key_listener
 
 st.set_page_config(page_title="Toggle con tecla", layout="centered")
 
+# ========================
+# ESTADOS
+# ========================
 if "toggle" not in st.session_state:
     st.session_state.toggle = True  # estado inicial = feliz
 
-# Función que simula el clic en el botón (cambia toggle)
+# ========================
+# FUNCIONES
+# ========================
 def on_button_click():
     st.session_state.toggle = not st.session_state.toggle
 
+# ========================
+# DETECTOR TECLA
+# ========================
 key = my_key_listener(key="listener")
 
-# Si se presiona Shift, como si se "clickea" el botón
 if key == "Shift":
     on_button_click()
 
-# Botón visible opcional (puedes ocultarlo si quieres)
-button_clicked = st.button("Cambiar emoji", on_click=on_button_click)
+# ========================
+# FRONTEND (sin CSS)
+# ========================
 
+st.title("🎛️ Control con tecla")
+
+col1, col2, col3 = st.columns([1,2,1])
+with col2:
+    # Botón visible
+    st.button("Cambiar emoji", on_click=on_button_click)
+
+st.divider()
+
+# Mostrar emoji grande
 emoji = "😊" if st.session_state.toggle else "😢"
+st.header(f"{emoji} Estado actual")
 
-st.markdown(f"### {emoji}")
-st.write("Última tecla detectada:", key)
+st.divider()
+
+st.subheader("⌨️ Última tecla detectada:")
+st.info(f" {key if key else 'Ninguna todavía...'} ")
