@@ -1,63 +1,75 @@
 # cronometro_shift.py
 import streamlit as st
+import time
 from datetime import datetime, timedelta
-from my_key_listener import my_key_listener
+from my_key_listener import my_key_listener  # tu componente React ya hecho
 
-st.set_page_config("⏱️ Cronómetro Toggle", layout="centered")
-st.title("⏱️ Cronómetro con botón único / tecla Shift")
+# =======================
+# CONFIG
+# =======================
+st.set_page_config(page_title="⏱️ Cronómetro con botón único / tecla Shift", layout="centered")
 
-# ===============================
-# Estado base
-# ===============================
-if "inicio" not in st.session_state:
-    st.session_state.inicio = None
-if "corriendo" not in st.session_state:
-    st.session_state.corriendo = False
-if "ultima_tecla" not in st.session_state:
-    st.session_state.ultima_tecla = None
+# =======================
+# ESTADO INICIAL
+# =======================
+if "running" not in st.session_state:
+    st.session_state.running = False
+if "start_time" not in st.session_state:
+    st.session_state.start_time = None
+if "elapsed" not in st.session_state:
+    st.session_state.elapsed = timedelta(0)
 
-# ===============================
-# Funciones
-# ===============================
-def toggle():
-    if not st.session_state.corriendo:
-        st.session_state.inicio = datetime.now()
-        st.session_state.corriendo = True
+# =======================
+# FUNCIONES
+# =======================
+def toggle_cronometro():
+    if not st.session_state.running:
+        # Arranca cronómetro
+        st.session_state.start_time = datetime.now()
+        st.session_state.running = True
     else:
-        st.session_state.corriendo = False
-        st.session_state.inicio = None
+        # Detiene y resetea
+        st.session_state.running = False
+        st.session_state.elapsed = timedelta(0)
+        st.session_state.start_time = None
 
-# ===============================
-# Listener de tecla
-# ===============================
+# =======================
+# LISTENER DE TECLA
+# =======================
 key = my_key_listener(key="listener")
-if key:
-    st.session_state.ultima_tecla = key
 
+# Si se presiona Shift → actúa como clic al botón
 if key == "Shift":
-    toggle()
+    toggle_cronometro()
     st.rerun()
 
-# ===============================
+# =======================
+# INTERFAZ
+# =======================
+st.title("⏱️ Cronómetro con botón único / tecla Shift")
+st.write("Presiona el botón o la tecla Shift para alternar.")
+
 # Botón único
-# ===============================
-label = "🟢 Iniciar / Shift" if not st.session_state.corriendo else "⏹️ Detener / Shift"
-if st.button(label):
-    toggle()
+btn_label = "⛔ Detener" if st.session_state.running else "🟢 Iniciar"
+if st.button(btn_label):
+    toggle_cronometro()
     st.rerun()
 
-# ===============================
-# Cronómetro con autorefresh
-# ===============================
+# =======================
+# CRONÓMETRO EN VIVO
+# =======================
 placeholder = st.empty()
 
-if st.session_state.corriendo and st.session_state.inicio:
-    # refrescar cada 1 segundo
-    st_autorefresh = st.rerun  # compatibilidad
-    st.set_query_params(refresh=str(datetime.now()))  # hack
-    ahora = datetime.now()
-    segundos = int((ahora - st.session_state.inicio).total_seconds())
-    duracion = str(timedelta(seconds=segundos))
-    placeholder.markdown(f"### ⏱️ Duración: {duracion}")
+if st.session_state.running:
+    # Mientras esté corriendo, actualiza duración
+    elapsed = datetime.now() - st.session_state.start_time
+    st.session_state.elapsed = elapsed
+    placeholder.subheader("⏱️ Duración: " + str(elapsed).split(".")[0])
+    # Forzar actualización
+    time.sleep(1)
+    st.rerun()
 else:
-    placeholder.markdown("### ⏱️ Duración: 00:00:00")
+    # Cuando no corre, mostrar el valor congelado (o 00:00:00 si se reseteó)
+    placeholder.subheader("⏱️ Duración: " + str(st.session_state.elapsed).split(".")[0])
+
+st.write("Última tecla detectada:", key)
