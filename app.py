@@ -54,11 +54,11 @@ if key != st.session_state.last_key:  # Evitar repeticiones rápidas
 # Botones para control manual
 col1, col2 = st.columns(2)
 with col1:
-    if st.button("Iniciar [Supr/Delete]", use_container_width=True):
+    if st.button("Iniciar", use_container_width=True):
         start_timer()
         st.rerun()
 with col2:
-    if st.button("Reiniciar [Shift]", use_container_width=True):
+    if st.button("Reiniciar", use_container_width=True):
         reset_timer()
         st.rerun()
 
