@@ -2,7 +2,7 @@ import streamlit as st
 import time
 from my_key_listener import my_key_listener
 
-st.set_page_config(page_title="Cronómetro con Teclas", layout="centered")
+st.set_page_config(page_title="Teclonómetro", layout="centered")
 
 # Inicializar estados en session_state
 if "running" not in st.session_state:
@@ -27,7 +27,7 @@ def reset_timer():
     st.session_state.start_time = 0.0
 
 # Título
-st.markdown("# Cronómetro con Teclas")
+st.markdown("# Teclonómetro")
 
 # Instrucciones
 st.info("""
