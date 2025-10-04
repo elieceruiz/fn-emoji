@@ -1,77 +1,88 @@
 # app.py
 import streamlit as st
 import time
-import pytz
 from datetime import datetime
 from pymongo import MongoClient
+import pytz
 from my_key_listener import my_key_listener
 
+# ==============================
+# CONFIG
+# ==============================
 st.set_page_config(page_title="Teclonómetro", layout="centered")
+st.markdown("# ⌨️ Teclonómetro")
 
-# ==========================
-# Conexión MongoDB
-# ==========================
-mongo_uri = st.secrets["mongo_uri"]
-client = MongoClient(mongo_uri)
-db = client["teclometro_db"]
-collection = db["sesiones"]
-
+# Zona horaria de Colombia
 tz = pytz.timezone("America/Bogota")
 
-# ==========================
-# Inicializar estados seguros
-# ==========================
-st.session_state.running = st.session_state.get("running", False)
-st.session_state.start_time = st.session_state.get("start_time", 0.0)
-st.session_state.start_timestamp = st.session_state.get("start_timestamp", None)
-st.session_state.elapsed_time = st.session_state.get("elapsed_time", 0.0)
-st.session_state.last_key = st.session_state.get("last_key", None)
+# Conectar a MongoDB desde secrets
+mongo_uri = st.secrets["mongo_uri"]
+client = MongoClient(mongo_uri)
+db = client["teclonometro_db"]
+collection = db["sesiones"]
 
-# ==========================
-# Funciones
-# ==========================
+# ==============================
+# ESTADOS
+# ==============================
+if "running" not in st.session_state:
+    st.session_state.running = False
+if "start_time" not in st.session_state:
+    st.session_state.start_time = 0.0
+if "elapsed_time" not in st.session_state:
+    st.session_state.elapsed_time = 0.0
+if "last_key" not in st.session_state:
+    st.session_state.last_key = None
+if "inicio_dt" not in st.session_state:
+    st.session_state.inicio_dt = None
+
+# ==============================
+# FUNCIONES
+# ==============================
 def start_timer():
     if not st.session_state.running:
         st.session_state.start_time = time.time()
-        st.session_state.start_timestamp = datetime.now(tz)
         st.session_state.running = True
+        st.session_state.inicio_dt = datetime.now(tz)
 
 def reset_timer():
-    if st.session_state.start_timestamp:
-        end_timestamp = datetime.now(tz)
-        elapsed = st.session_state.elapsed_time + (time.time() - st.session_state.start_time)
+    if st.session_state.running:
+        fin_dt = datetime.now(tz)
+        duracion = st.session_state.elapsed_time + (time.time() - st.session_state.start_time)
 
-        # Guardar una sesión completa
-        doc = {
-            "inicio": st.session_state.start_timestamp,
-            "fin": end_timestamp,
-            "duracion_seg": elapsed,
-            "duracion_formateada": f"{int(elapsed//3600):02d}:{int((elapsed%3600)//60):02d}:{int(elapsed%60):02d}"
-        }
-        collection.insert_one(doc)
+        # Formatear duración a HH:MM:SS
+        h = int(duracion // 3600)
+        m = int((duracion % 3600) // 60)
+        s = int(duracion % 60)
+        duracion_str = f"{h:02d}:{m:02d}:{s:02d}"
 
-    # Reiniciar todo
+        # Guardar en Mongo
+        collection.insert_one({
+            "inicio": st.session_state.inicio_dt.strftime("%Y-%m-%d %H:%M:%S"),
+            "fin": fin_dt.strftime("%Y-%m-%d %H:%M:%S"),
+            "duracion": duracion_str
+        })
+
+    # Reiniciar cronómetro
     st.session_state.running = False
     st.session_state.elapsed_time = 0.0
     st.session_state.start_time = 0.0
-    st.session_state.start_timestamp = None
+    st.session_state.inicio_dt = None
 
-# ==========================
-# UI
-# ==========================
-st.markdown("# Teclonómetro")
-
+# ==============================
+# INSTRUCCIONES
+# ==============================
 st.info("""
-**Instrucciones**  
+**Instrucciones**
 - Presiona **Delete** para iniciar el cronómetro.  
-- Presiona **Shift** para detener y guardar la sesión.  
-- Usa los botones para control manual.
+- Presiona **Shift** para detener y guardar.  
+- También puedes usar los botones.
 """)
 
-# Detectar tecla
+# ==============================
+# DETECCIÓN DE TECLAS
+# ==============================
 key = my_key_listener(key="listener")
 
-# Lógica de teclas
 if key != st.session_state.last_key:
     st.session_state.last_key = key
     if key == "Delete":
@@ -81,65 +92,85 @@ if key != st.session_state.last_key:
         reset_timer()
         st.rerun()
 
-# Botones manuales
-col1, col2 = st.columns(2)
+# ==============================
+# BOTONES MANUALES
+# ==============================
+col1, col2, col3 = st.columns(3)
 with col1:
-    if st.button("Iniciar", use_container_width=True):
+    if st.button("▶️ Iniciar", use_container_width=True):
         start_timer()
         st.rerun()
 with col2:
-    if st.button("Detener y guardar", use_container_width=True):
+    if st.button("⏹️ Detener", use_container_width=True):
         reset_timer()
         st.rerun()
+with col3:
+    if st.button("🧹 Limpiar histórico", use_container_width=True):
+        collection.delete_many({})
+        st.success("Histórico limpiado.")
+        st.rerun()
 
-# ==========================
-# Cronómetro
-# ==========================
+# ==============================
+# CRONÓMETRO
+# ==============================
 if st.session_state.running:
     current_time = st.session_state.elapsed_time + (time.time() - st.session_state.start_time)
 else:
     current_time = st.session_state.elapsed_time
 
-hours = int(current_time // 3600)
-minutes = int((current_time % 3600) // 60)
-seconds = int(current_time % 60)
-formatted_time = f"{hours:02d}:{minutes:02d}:{seconds:02d}"
+h = int(current_time // 3600)
+m = int((current_time % 3600) // 60)
+s = int(current_time % 60)
+formatted_time = f"{h:02d}:{m:02d}:{s:02d}"
 
-st.markdown(f"### {formatted_time}", unsafe_allow_html=True)
+st.markdown(f"## {formatted_time}")
 
-# Estado
 if st.session_state.running:
     st.success("Estado: Corriendo")
 else:
     st.error("Estado: Detenido")
 
-# Última tecla
 st.write("Última tecla:", key if key else "Ninguna")
 
-# Emoji
 emoji = "🏃‍♂️" if st.session_state.running else "🛑"
 st.markdown(f"## {emoji}", unsafe_allow_html=True)
 
-# ==========================
-# Mostrar sesiones guardadas
-# ==========================
-st.subheader("Histórico de sesiones")
-docs = list(collection.find().sort("inicio", -1).limit(10))
-if docs:
-    table = []
-    for d in docs:
-        table.append({
-            "Inicio": d["inicio"].strftime("%Y-%m-%d %H:%M:%S"),
-            "Fin": d["fin"].strftime("%Y-%m-%d %H:%M:%S"),
-            "Duración": d["duracion_formateada"]
-        })
-    st.table(table)
-else:
-    st.write("Sin sesiones registradas.")
-
-# ==========================
-# Auto actualización
-# ==========================
+# ==============================
+# ACTUALIZACIÓN AUTOMÁTICA
+# ==============================
 if st.session_state.running:
     time.sleep(0.1)
     st.rerun()
+
+# ==============================
+# HISTÓRICO DE SESIONES
+# ==============================
+st.subheader("Histórico de sesiones")
+
+sessions = list(collection.find().sort("_id", -1))
+
+if sessions:
+    formatted_data = []
+    for idx, s in enumerate(sessions, start=1):
+        inicio = s.get("inicio")
+        fin = s.get("fin")
+        duracion = s.get("duracion")
+
+        # Ejemplo: "4 Oct 25 — 15:53:52"
+        inicio_fmt = datetime.strptime(inicio, "%Y-%m-%d %H:%M:%S").strftime("%-d %b %y — %H:%M:%S")
+        fin_fmt = datetime.strptime(fin, "%Y-%m-%d %H:%M:%S").strftime("%-d %b %y — %H:%M:%S")
+
+        # Duración: "0h 8m 2s"
+        h, m, s = duracion.split(":")
+        duracion_fmt = f"{int(h)}h {int(m)}m {int(s)}s"
+
+        formatted_data.append({
+            "N°": idx,
+            "Inicio": inicio_fmt,
+            "Fin": fin_fmt,
+            "Duración": duracion_fmt
+        })
+
+    st.dataframe(formatted_data, use_container_width=True)
+else:
+    st.info("Aún no hay registros guardados.")
