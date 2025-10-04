@@ -39,44 +39,32 @@ if "inicio_dt" not in st.session_state:
 # FUNCIONES
 # ==============================
 def start_timer():
-    if not st.session_state.running:
-        st.session_state.start_time = time.time()
-        st.session_state.running = True
-        st.session_state.inicio_dt = datetime.now(tz)
+    st.session_state.start_time = time.time()
+    st.session_state.running = True
+    st.session_state.inicio_dt = datetime.now(tz)
 
-def reset_timer():
-    if st.session_state.running:
-        fin_dt = datetime.now(tz)
-        duracion = st.session_state.elapsed_time + (time.time() - st.session_state.start_time)
+def stop_and_save():
+    fin_dt = datetime.now(tz)
+    duracion = st.session_state.elapsed_time + (time.time() - st.session_state.start_time)
 
-        # Formatear duración a HH:MM:SS
-        h = int(duracion // 3600)
-        m = int((duracion % 3600) // 60)
-        s = int(duracion % 60)
-        duracion_str = f"{h:02d}:{m:02d}:{s:02d}"
+    # Formatear duración a HH:MM:SS
+    h = int(duracion // 3600)
+    m = int((duracion % 3600) // 60)
+    s = int(duracion % 60)
+    duracion_str = f"{h:02d}:{m:02d}:{s:02d}"
 
-        # Guardar en Mongo
-        collection.insert_one({
-            "inicio": st.session_state.inicio_dt.strftime("%Y-%m-%d %H:%M:%S"),
-            "fin": fin_dt.strftime("%Y-%m-%d %H:%M:%S"),
-            "duracion": duracion_str
-        })
+    # Guardar en Mongo
+    collection.insert_one({
+        "inicio": st.session_state.inicio_dt.strftime("%Y-%m-%d %H:%M:%S"),
+        "fin": fin_dt.strftime("%Y-%m-%d %H:%M:%S"),
+        "duracion": duracion_str
+    })
 
-    # Reiniciar cronómetro
+    # Reiniciar estados
     st.session_state.running = False
     st.session_state.elapsed_time = 0.0
     st.session_state.start_time = 0.0
     st.session_state.inicio_dt = None
-
-# ==============================
-# INSTRUCCIONES
-# ==============================
-st.info("""
-**Instrucciones**
-- Presiona **Delete** para iniciar el cronómetro.  
-- Presiona **Shift** para detener y guardar.  
-- También puedes usar los botones.
-""")
 
 # ==============================
 # DETECCIÓN DE TECLAS
@@ -89,25 +77,7 @@ if key != st.session_state.last_key:
         start_timer()
         st.rerun()
     elif key == "Shift":
-        reset_timer()
-        st.rerun()
-
-# ==============================
-# BOTONES MANUALES
-# ==============================
-col1, col2, col3 = st.columns(3)
-with col1:
-    if st.button("▶️ Iniciar", use_container_width=True):
-        start_timer()
-        st.rerun()
-with col2:
-    if st.button("⏹️ Detener", use_container_width=True):
-        reset_timer()
-        st.rerun()
-with col3:
-    if st.button("🧹 Limpiar histórico", use_container_width=True):
-        collection.delete_many({})
-        st.success("Histórico limpiado.")
+        stop_and_save()
         st.rerun()
 
 # ==============================
@@ -125,6 +95,7 @@ formatted_time = f"{h:02d}:{m:02d}:{s:02d}"
 
 st.markdown(f"## {formatted_time}")
 
+# Estado visual
 if st.session_state.running:
     st.success("Estado: Corriendo")
 else:
@@ -132,8 +103,18 @@ else:
 
 st.write("Última tecla:", key if key else "Ninguna")
 
-emoji = "🏃‍♂️" if st.session_state.running else "🛑"
-st.markdown(f"## {emoji}", unsafe_allow_html=True)
+# ==============================
+# BOTÓN ÚNICO
+# ==============================
+emoji = "🟢" if not st.session_state.running else "🔴"
+label = "Iniciar" if not st.session_state.running else "Detener y guardar"
+
+if st.button(f"{emoji} {label}", use_container_width=True):
+    if not st.session_state.running:
+        start_timer()
+    else:
+        stop_and_save()
+    st.rerun()
 
 # ==============================
 # ACTUALIZACIÓN AUTOMÁTICA
