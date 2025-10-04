@@ -148,7 +148,6 @@ sessions = list(collection.find().sort("_id", -1))
 
 if sessions:
     formatted_data = []
-    # ✅ Numeración descendente: el último registro es el N°1
     total = len(sessions)
     for idx, s in enumerate(sessions, start=1):
         inicio = s.get("inicio")
@@ -164,7 +163,8 @@ if sessions:
         duracion_fmt = f"{int(h)}h {int(m)}m {int(s)}s"
 
         formatted_data.append({
-            "N°": idx,  # muestra 1 para el más reciente
+            # 👇 ahora el más reciente recibe el número mayor
+            "N°": total - idx + 1,
             "Inicio": inicio_fmt,
             "Fin": fin_fmt,
             "Duración": duracion_fmt
