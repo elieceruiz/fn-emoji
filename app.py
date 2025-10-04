@@ -44,7 +44,6 @@ def start_timer():
     st.session_state.inicio_dt = datetime.now(tz)
 
 def stop_and_save():
-    # ✅ Validación: no hacer nada si no hay inicio registrado
     if st.session_state.inicio_dt is None:
         return
 
@@ -149,7 +148,11 @@ if st.session_state.running:
 # ==============================
 # HISTÓRICO DE SESIONES
 # ==============================
-if not st.session_state.running:  # 👈 solo mostrar cuando está detenido
+if st.session_state.running:
+    # 👇 Spinner neutro mientras corre, sin mostrar histórico
+    with st.spinner("Cronómetro en marcha..."):
+        time.sleep(0.3)
+else:
     st.subheader("Histórico de sesiones")
 
     sessions = list(collection.find().sort("_id", -1))
@@ -162,16 +165,14 @@ if not st.session_state.running:  # 👈 solo mostrar cuando está detenido
             fin = s.get("fin")
             duracion = s.get("duracion")
 
-            # Ejemplo: "4 Oct 25 — 15:53:52"
             inicio_fmt = datetime.strptime(inicio, "%Y-%m-%d %H:%M:%S").strftime("%-d %b %y — %H:%M:%S")
             fin_fmt = datetime.strptime(fin, "%Y-%m-%d %H:%M:%S").strftime("%-d %b %y — %H:%M:%S")
 
-            # Duración: "0h 8m 2s"
             h, m, s = duracion.split(":")
             duracion_fmt = f"{int(h)}h {int(m)}m {int(s)}s"
 
             formatted_data.append({
-                "N°": total - idx + 1,  # 👈 el más reciente recibe el número mayor
+                "N°": total - idx + 1,
                 "Inicio": inicio_fmt,
                 "Fin": fin_fmt,
                 "Duración": duracion_fmt
