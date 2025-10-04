@@ -44,6 +44,10 @@ def start_timer():
     st.session_state.inicio_dt = datetime.now(tz)
 
 def stop_and_save():
+    # ✅ Validación: no hacer nada si no hay inicio registrado
+    if st.session_state.inicio_dt is None:
+        return
+
     fin_dt = datetime.now(tz)
     duracion = st.session_state.elapsed_time + (time.time() - st.session_state.start_time)
 
@@ -111,7 +115,7 @@ if st.session_state.running:
 else:
     st.error("Estado: Detenido")
 
-st.write("Última tecla:", key if key else "Ninguna")
+st.write("Última tecla:", f"`{key}`" if key else "Ninguna")
 
 # ==============================
 # BOTÓN ÚNICO MINIMALISTA
@@ -144,6 +148,8 @@ sessions = list(collection.find().sort("_id", -1))
 
 if sessions:
     formatted_data = []
+    # ✅ Numeración descendente: el último registro es el N°1
+    total = len(sessions)
     for idx, s in enumerate(sessions, start=1):
         inicio = s.get("inicio")
         fin = s.get("fin")
@@ -158,7 +164,7 @@ if sessions:
         duracion_fmt = f"{int(h)}h {int(m)}m {int(s)}s"
 
         formatted_data.append({
-            "N°": idx,
+            "N°": idx,  # muestra 1 para el más reciente
             "Inicio": inicio_fmt,
             "Fin": fin_fmt,
             "Duración": duracion_fmt
