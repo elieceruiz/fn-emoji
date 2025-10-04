@@ -1,99 +1,36 @@
 # app.py
 import streamlit as st
 import time
-from pymongo import MongoClient
 from my_key_listener import my_key_listener
-from datetime import datetime, timezone
-import pytz
 
-# ========================
-# CONFIG
-# ========================
 st.set_page_config(page_title="Teclonómetro", layout="centered")
 
-# Leer Mongo desde secrets
-mongo_uri = st.secrets["mongo_uri"]
-client = MongoClient(mongo_uri)
-db = client["teclonometro"]           # Base de datos
-collection = db["cronometro"]         # Colección estado cronómetro
-logs = db["cronometro_logs"]          # Colección para historial
+# Inicializar estados en session_state
+if "running" not in st.session_state:
+    st.session_state.running = False  # Cronómetro detenido inicialmente
+if "start_time" not in st.session_state:
+    st.session_state.start_time = 0.0  # Tiempo de inicio
+if "elapsed_time" not in st.session_state:
+    st.session_state.elapsed_time = 0.0  # Tiempo acumulado
+if "last_key" not in st.session_state:
+    st.session_state.last_key = None  # Última tecla detectada
 
-# ID único para tu cronómetro
-CRONO_ID = "principal"
-
-# Zona horaria de Colombia
-bogota_tz = pytz.timezone("America/Bogota")
-
-# ========================
-# Helpers DB
-# ========================
-def get_state():
-    state = collection.find_one({"_id": CRONO_ID})
-    if not state:
-        state = {
-            "_id": CRONO_ID,
-            "running": False,
-            "start_time": None,
-            "paused_time": 0.0
-        }
-        collection.insert_one(state)
-    return state
-
-def update_state(updates: dict):
-    collection.update_one({"_id": CRONO_ID}, {"$set": updates}, upsert=True)
-
-def log_event(action: str):
-    """Guardar logs de inicio / reinicio con hora UTC"""
-    logs.insert_one({
-        "action": action,
-        "timestamp_utc": datetime.now(timezone.utc)
-    })
-
-def get_logs():
-    """Devuelve logs con hora convertida a Colombia"""
-    cursor = logs.find().sort("timestamp_utc", -1)  # más recientes arriba
-    data = []
-    for doc in cursor:
-        ts_local = doc["timestamp_utc"].astimezone(bogota_tz)
-        data.append({
-            "Acción": doc["action"],
-            "Hora (Bogotá)": ts_local.strftime("%Y-%m-%d %H:%M:%S")
-        })
-    return data
-
-# ========================
-# Lógica cronómetro
-# ========================
-state = get_state()
-
+# Función para iniciar el cronómetro
 def start_timer():
-    if not state["running"]:
-        if state["start_time"] is None:
-            update_state({
-                "start_time": time.time(),
-                "paused_time": 0.0,
-                "running": True
-            })
-        else:
-            new_start = time.time() - state["paused_time"]
-            update_state({
-                "start_time": new_start,
-                "running": True
-            })
-        log_event("Iniciar")
+    if not st.session_state.running:  # Solo iniciar si no está corriendo
+        st.session_state.start_time = time.time()
+        st.session_state.running = True
 
+# Función para reiniciar y detener el cronómetro
 def reset_timer():
-    update_state({
-        "running": False,
-        "start_time": None,
-        "paused_time": 0.0
-    })
-    log_event("Reiniciar")
+    st.session_state.running = False
+    st.session_state.elapsed_time = 0.0
+    st.session_state.start_time = 0.0
 
-# ========================
-# UI
-# ========================
+# Título
 st.markdown("# Teclonómetro")
+
+# Instrucciones
 st.info("""
 **Instrucciones**  
 - Presiona **Delete** para iniciar el cronómetro.  
@@ -104,14 +41,17 @@ st.info("""
 # Detectar tecla
 key = my_key_listener(key="listener")
 
-if key == "Delete":
-    start_timer()
-    st.rerun()
-elif key == "Shift":
-    reset_timer()
-    st.rerun()
+# Lógica de teclas
+if key != st.session_state.last_key:  # Evitar repeticiones rápidas
+    st.session_state.last_key = key
+    if key == "Delete":  # Delete inicia el cronómetro
+        start_timer()
+        st.rerun()
+    elif key == "Shift":  # Shift reinicia y detiene
+        reset_timer()
+        st.rerun()
 
-# Botones
+# Botones para control manual
 col1, col2 = st.columns(2)
 with col1:
     if st.button("Iniciar", use_container_width=True):
@@ -122,43 +62,35 @@ with col2:
         reset_timer()
         st.rerun()
 
-# ========================
-# Calcular tiempo
-# ========================
-state = get_state()
-
-if state["start_time"] is not None:
-    if state["running"]:
-        elapsed = time.time() - state["start_time"]
-        update_state({"paused_time": elapsed})
-    else:
-        elapsed = state["paused_time"]
+# Calcular tiempo transcurrido
+if st.session_state.running:
+    current_time = st.session_state.elapsed_time + (time.time() - st.session_state.start_time)
 else:
-    elapsed = 0.0
+    current_time = st.session_state.elapsed_time
 
-# Formato HH:MM:SS
-hours = int(elapsed // 3600)
-minutes = int((elapsed % 3600) // 60)
-seconds = int(elapsed % 60)
-formatted = f"{hours:02d}:{minutes:02d}:{seconds:02d}"
+# Formatear tiempo como HH:MM:SS
+hours = int(current_time // 3600)
+minutes = int((current_time % 3600) // 60)
+seconds = int(current_time % 60)
+formatted_time = f"{hours:02d}:{minutes:02d}:{seconds:02d}"
 
 # Mostrar cronómetro
-st.markdown(f"### {formatted}")
-st.write("Última tecla:", key if key else "Ninguna")
-emoji = "🏃‍♂️" if state["running"] else "🛑"
-st.markdown(f"## {emoji}")
+st.markdown(f"### {formatted_time}", unsafe_allow_html=True)
 
-# ========================
-# Mostrar logs en tabla
-# ========================
-st.subheader("Historial de acciones (hora Bogotá)")
-data = get_logs()
-if data:
-    st.dataframe(data)
+# Mostrar estado
+if st.session_state.running:
+    st.success("Estado: Corriendo")
 else:
-    st.info("No hay registros aún.")
+    st.error("Estado: Detenido")
 
-# Refrescar en bucle
-if state["running"]:
-    time.sleep(0.5)
+# Mostrar última tecla detectada
+st.write("Última tecla:", key if key else "Ninguna")
+
+# Emoji para feedback visual
+emoji = "🏃‍♂️" if st.session_state.running else "🛑"
+st.markdown(f"## {emoji}", unsafe_allow_html=True)
+
+# Actualización automática solo si está corriendo
+if st.session_state.running:
+    time.sleep(0.1)  # Pausa para evitar reruns demasiado rápidos
     st.rerun()
