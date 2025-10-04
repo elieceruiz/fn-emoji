@@ -148,35 +148,32 @@ if st.session_state.running:
 # ==============================
 # HISTÓRICO DE SESIONES
 # ==============================
-historico_container = st.empty()  # contenedor dinámico
-
 if not st.session_state.running:  # 👈 solo aparece cuando está detenido
-    with historico_container:
-        st.subheader("Histórico de sesiones")
+    st.subheader("Histórico de sesiones")
 
-        sessions = list(collection.find().sort("_id", -1))
+    sessions = list(collection.find().sort("_id", -1))
 
-        if sessions:
-            formatted_data = []
-            total = len(sessions)
-            for idx, s in enumerate(sessions, start=1):
-                inicio = s.get("inicio")
-                fin = s.get("fin")
-                duracion = s.get("duracion")
+    if sessions:
+        formatted_data = []
+        total = len(sessions)
+        for idx, s in enumerate(sessions, start=1):
+            inicio = s.get("inicio")
+            fin = s.get("fin")
+            duracion = s.get("duracion")
 
-                inicio_fmt = datetime.strptime(inicio, "%Y-%m-%d %H:%M:%S").strftime("%-d %b %y — %H:%M:%S")
-                fin_fmt = datetime.strptime(fin, "%Y-%m-%d %H:%M:%S").strftime("%-d %b %y — %H:%M:%S")
+            inicio_fmt = datetime.strptime(inicio, "%Y-%m-%d %H:%M:%S").strftime("%-d %b %y — %H:%M:%S")
+            fin_fmt = datetime.strptime(fin, "%Y-%m-%d %H:%M:%S").strftime("%-d %b %y — %H:%M:%S")
 
-                h, m, s = duracion.split(":")
-                duracion_fmt = f"{int(h)}h {int(m)}m {int(s)}s"
+            h, m, s = duracion.split(":")
+            duracion_fmt = f"{int(h)}h {int(m)}m {int(s)}s"
 
-                formatted_data.append({
-                    "N°": total - idx + 1,
-                    "Inicio": inicio_fmt,
-                    "Fin": fin_fmt,
-                    "Duración": duracion_fmt
-                })
+            formatted_data.append({
+                "N°": total - idx + 1,
+                "Inicio": inicio_fmt,
+                "Fin": fin_fmt,
+                "Duración": duracion_fmt
+            })
 
-            st.dataframe(formatted_data, use_container_width=True)
-        else:
-            st.info("Aún no hay registros guardados.")
+        st.dataframe(formatted_data, use_container_width=True)
+    else:
+        st.info("Aún no hay registros guardados.")
