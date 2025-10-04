@@ -120,17 +120,20 @@ st.write("Última tecla:", f"`{key}`" if key else "Ninguna")
 # ==============================
 # BOTÓN ÚNICO MINIMALISTA
 # ==============================
-if st.session_state.running:
-    label = "🔴 `Shift`"
-else:
-    label = "🟢 `Delete`"
+col1, col2, col3 = st.columns([4,2,4])  # botón centrado y corto
 
-if st.button(label, use_container_width=True):
-    if not st.session_state.running:
-        start_timer()
+with col2:
+    if st.session_state.running:
+        label = "🔴 `Shift`"
     else:
-        stop_and_save()
-    st.rerun()
+        label = "🟢 `Delete`"
+
+    if st.button(label):
+        if not st.session_state.running:
+            start_timer()
+        else:
+            stop_and_save()
+        st.rerun()
 
 # ==============================
 # ACTUALIZACIÓN AUTOMÁTICA
@@ -163,7 +166,7 @@ if sessions:
         duracion_fmt = f"{int(h)}h {int(m)}m {int(s)}s"
 
         formatted_data.append({
-            # 👇 ahora el más reciente recibe el número mayor
+            # 👇 el más reciente recibe el número mayor
             "N°": total - idx + 1,
             "Inicio": inicio_fmt,
             "Fin": fin_fmt,
