@@ -148,36 +148,35 @@ if st.session_state.running:
 # ==============================
 # HISTÓRICO DE SESIONES
 # ==============================
-if st.session_state.running:
-    # 👇 Spinner neutro mientras corre, sin mostrar histórico
-    with st.spinner("Cronómetro en marcha..."):
-        time.sleep(0.3)
-else:
-    st.subheader("Histórico de sesiones")
+historico_container = st.empty()  # contenedor dinámico
 
-    sessions = list(collection.find().sort("_id", -1))
+if not st.session_state.running:  # 👈 solo aparece cuando está detenido
+    with historico_container:
+        st.subheader("Histórico de sesiones")
 
-    if sessions:
-        formatted_data = []
-        total = len(sessions)
-        for idx, s in enumerate(sessions, start=1):
-            inicio = s.get("inicio")
-            fin = s.get("fin")
-            duracion = s.get("duracion")
+        sessions = list(collection.find().sort("_id", -1))
 
-            inicio_fmt = datetime.strptime(inicio, "%Y-%m-%d %H:%M:%S").strftime("%-d %b %y — %H:%M:%S")
-            fin_fmt = datetime.strptime(fin, "%Y-%m-%d %H:%M:%S").strftime("%-d %b %y — %H:%M:%S")
+        if sessions:
+            formatted_data = []
+            total = len(sessions)
+            for idx, s in enumerate(sessions, start=1):
+                inicio = s.get("inicio")
+                fin = s.get("fin")
+                duracion = s.get("duracion")
 
-            h, m, s = duracion.split(":")
-            duracion_fmt = f"{int(h)}h {int(m)}m {int(s)}s"
+                inicio_fmt = datetime.strptime(inicio, "%Y-%m-%d %H:%M:%S").strftime("%-d %b %y — %H:%M:%S")
+                fin_fmt = datetime.strptime(fin, "%Y-%m-%d %H:%M:%S").strftime("%-d %b %y — %H:%M:%S")
 
-            formatted_data.append({
-                "N°": total - idx + 1,
-                "Inicio": inicio_fmt,
-                "Fin": fin_fmt,
-                "Duración": duracion_fmt
-            })
+                h, m, s = duracion.split(":")
+                duracion_fmt = f"{int(h)}h {int(m)}m {int(s)}s"
 
-        st.dataframe(formatted_data, use_container_width=True)
-    else:
-        st.info("Aún no hay registros guardados.")
+                formatted_data.append({
+                    "N°": total - idx + 1,
+                    "Inicio": inicio_fmt,
+                    "Fin": fin_fmt,
+                    "Duración": duracion_fmt
+                })
+
+            st.dataframe(formatted_data, use_container_width=True)
+        else:
+            st.info("Aún no hay registros guardados.")
