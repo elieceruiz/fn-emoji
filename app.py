@@ -74,10 +74,10 @@ def stop_and_save():
 # INSTRUCCIONES
 # ==============================
 st.info("""
-**Instrucciones**  
-- Presiona **`Delete`** para iniciar el cronómetro.  
-- Presiona **`Shift`** para detener y guardar la sesión.  
-- También puedes usar el botón central para control manual.
+**Instrucciones**    
+- Presiona **`Delete`** para iniciar el cronómetro.    
+- Presiona **`Shift`** para detener y guardar la sesión.    
+- También puedes usar el botón central para control manual.  
 """)
 
 # ==============================
@@ -88,11 +88,13 @@ key = my_key_listener(key="listener")
 if key != st.session_state.last_key:
     st.session_state.last_key = key
     if key == "Delete":
-        start_timer()
-        st.rerun()
+        with st.spinner("Iniciando cronómetro..."):
+            start_timer()
+            st.rerun()
     elif key == "Shift":
-        stop_and_save()
-        st.rerun()
+        with st.spinner("Guardando sesión..."):
+            stop_and_save()
+            st.rerun()
 
 # ==============================
 # CRONÓMETRO
@@ -130,9 +132,11 @@ with col2:
 
     if st.button(label):
         if not st.session_state.running:
-            start_timer()
+            with st.spinner("Iniciando cronómetro..."):
+                start_timer()
         else:
-            stop_and_save()
+            with st.spinner("Guardando sesión..."):
+                stop_and_save()
         st.rerun()
 
 # ==============================
