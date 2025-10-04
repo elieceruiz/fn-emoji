@@ -9,46 +9,52 @@ from my_key_listener import my_key_listener
 st.set_page_config(page_title="Teclonómetro", layout="centered")
 
 # ==========================
-# MongoDB conexión
+# Conexión MongoDB
 # ==========================
 mongo_uri = st.secrets["mongo_uri"]
 client = MongoClient(mongo_uri)
 db = client["teclometro_db"]
-collection = db["registros"]
+collection = db["sesiones"]
 
 tz = pytz.timezone("America/Bogota")
-
-def log_event(event_type, elapsed):
-    """Guardar evento en MongoDB con hora local"""
-    doc = {
-        "event": event_type,
-        "elapsed_time": elapsed,
-        "timestamp": datetime.now(tz)
-    }
-    collection.insert_one(doc)
 
 # ==========================
 # Inicializar estados seguros
 # ==========================
 st.session_state.running = st.session_state.get("running", False)
 st.session_state.start_time = st.session_state.get("start_time", 0.0)
+st.session_state.start_timestamp = st.session_state.get("start_timestamp", None)
 st.session_state.elapsed_time = st.session_state.get("elapsed_time", 0.0)
 st.session_state.last_key = st.session_state.get("last_key", None)
 
 # ==========================
-# Funciones de control
+# Funciones
 # ==========================
 def start_timer():
     if not st.session_state.running:
         st.session_state.start_time = time.time()
+        st.session_state.start_timestamp = datetime.now(tz)
         st.session_state.running = True
-        log_event("start", st.session_state.elapsed_time)
 
 def reset_timer():
+    if st.session_state.start_timestamp:
+        end_timestamp = datetime.now(tz)
+        elapsed = st.session_state.elapsed_time + (time.time() - st.session_state.start_time)
+
+        # Guardar una sesión completa
+        doc = {
+            "inicio": st.session_state.start_timestamp,
+            "fin": end_timestamp,
+            "duracion_seg": elapsed,
+            "duracion_formateada": f"{int(elapsed//3600):02d}:{int((elapsed%3600)//60):02d}:{int(elapsed%60):02d}"
+        }
+        collection.insert_one(doc)
+
+    # Reiniciar todo
     st.session_state.running = False
     st.session_state.elapsed_time = 0.0
     st.session_state.start_time = 0.0
-    log_event("reset", 0.0)
+    st.session_state.start_timestamp = None
 
 # ==========================
 # UI
@@ -58,7 +64,7 @@ st.markdown("# Teclonómetro")
 st.info("""
 **Instrucciones**  
 - Presiona **Delete** para iniciar el cronómetro.  
-- Presiona **Shift** para reiniciar y detener.  
+- Presiona **Shift** para detener y guardar la sesión.  
 - Usa los botones para control manual.
 """)
 
@@ -66,7 +72,7 @@ st.info("""
 key = my_key_listener(key="listener")
 
 # Lógica de teclas
-if key != st.session_state.last_key:  
+if key != st.session_state.last_key:
     st.session_state.last_key = key
     if key == "Delete":
         start_timer()
@@ -82,7 +88,7 @@ with col1:
         start_timer()
         st.rerun()
 with col2:
-    if st.button("Reiniciar", use_container_width=True):
+    if st.button("Detener y guardar", use_container_width=True):
         reset_timer()
         st.rerun()
 
@@ -115,21 +121,21 @@ emoji = "🏃‍♂️" if st.session_state.running else "🛑"
 st.markdown(f"## {emoji}", unsafe_allow_html=True)
 
 # ==========================
-# Mostrar registros Mongo
+# Mostrar sesiones guardadas
 # ==========================
-st.subheader("Histórico de eventos")
-docs = list(collection.find().sort("timestamp", -1).limit(10))  # últimos 10
+st.subheader("Histórico de sesiones")
+docs = list(collection.find().sort("inicio", -1).limit(10))
 if docs:
     table = []
     for d in docs:
         table.append({
-            "Evento": d["event"],
-            "Tiempo acumulado": f'{int(d["elapsed_time"] // 3600):02d}:{int((d["elapsed_time"] % 3600) // 60):02d}:{int(d["elapsed_time"] % 60):02d}',
-            "Fecha/Hora": d["timestamp"].strftime("%Y-%m-%d %H:%M:%S")
+            "Inicio": d["inicio"].strftime("%Y-%m-%d %H:%M:%S"),
+            "Fin": d["fin"].strftime("%Y-%m-%d %H:%M:%S"),
+            "Duración": d["duracion_formateada"]
         })
     st.table(table)
 else:
-    st.write("Sin registros todavía.")
+    st.write("Sin sesiones registradas.")
 
 # ==========================
 # Auto actualización
