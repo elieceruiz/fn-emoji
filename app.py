@@ -67,6 +67,16 @@ def stop_and_save():
     st.session_state.inicio_dt = None
 
 # ==============================
+# INSTRUCCIONES
+# ==============================
+st.info("""
+**Instrucciones**  
+- Presiona **`Delete`** para iniciar el cronómetro.  
+- Presiona **`Shift`** para detener y guardar la sesión.  
+- También puedes usar el botón central para control manual.
+""")
+
+# ==============================
 # DETECCIÓN DE TECLAS
 # ==============================
 key = my_key_listener(key="listener")
@@ -106,8 +116,12 @@ st.write("Última tecla:", key if key else "Ninguna")
 # ==============================
 # BOTÓN ÚNICO
 # ==============================
-emoji = "🟢" if not st.session_state.running else "🔴"
-label = "Iniciar" if not st.session_state.running else "Detener y guardar"
+if st.session_state.running:
+    emoji = "🔴"
+    label = "`Shift` Detener y guardar"
+else:
+    emoji = "🟢"
+    label = "`Delete` Iniciar"
 
 if st.button(f"{emoji} {label}", use_container_width=True):
     if not st.session_state.running:
