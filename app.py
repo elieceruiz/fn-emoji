@@ -10,7 +10,7 @@ from my_key_listener import my_key_listener
 # CONFIG
 # ==============================
 st.set_page_config(page_title="Teclonómetro", layout="centered")
-st.markdown("# ⌨️ Teclonómetro")
+st.markdown("# ⌨️")
 
 # Zona horaria de Colombia
 tz = pytz.timezone("America/Bogota")
