@@ -114,16 +114,14 @@ else:
 st.write("Última tecla:", key if key else "Ninguna")
 
 # ==============================
-# BOTÓN ÚNICO
+# BOTÓN ÚNICO MINIMALISTA
 # ==============================
 if st.session_state.running:
-    emoji = "🔴"
-    label = "`Shift` Detener y guardar"
+    label = "🔴 `Shift`"
 else:
-    emoji = "🟢"
-    label = "`Delete` Iniciar"
+    label = "🟢 `Delete`"
 
-if st.button(f"{emoji} {label}", use_container_width=True):
+if st.button(label, use_container_width=True):
     if not st.session_state.running:
         start_timer()
     else:
